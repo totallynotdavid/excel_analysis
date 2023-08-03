@@ -1,0 +1,7 @@
+poetry.lock
+*.log
+*.ipynb
+*.xlsx
+.pytest_cache/
+excel_analysis/__pycache__/
+tests/__pycache__/
