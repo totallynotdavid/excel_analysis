@@ -120,16 +120,15 @@ def get_optimal_threshold(Y_test, y_pred):
 
 def main():
     test_mode = os.environ.get('TEST_MODE', 'False') == 'True'
-    file_name = 'Base1.xlsx' if test_mode else 'Base2.xlsx'
     all_data = load_data(single_sheet=False)
 
     if test_mode:
-        # Single sheet for test mode
-        print("Running in test mode")
+        # Una sola hoja para modo de prueba
+        print("Ejecutando en modo de prueba")
         df = all_data[list(all_data.keys())[0]]
         process_stock_data(df, "Test Sheet")
     else:
-        # Multiple sheets for normal mode
+        # Múltiples hojas para modo de producción
         number_of_sheets = len(all_data)
         print(f"Encontramos {number_of_sheets} hojas en el archivo Excel")
         for sheet_name, df in all_data.items():
@@ -144,19 +143,12 @@ def process_stock_data(df, sheet_name):
 
     X_train, Y_train, X_test, Y_test = get_training_and_test_data(df)
 
-    # Modelo SVM
-    # clf = train_svm(X_train, Y_train)
-    # yhat = clf.predict(X_test)
-
     # Modelo de red neuronal
     nn = train_neural_network(X_train, Y_train)
     y_pred = nn.predict(X_test)
-    # df_temp = pd.DataFrame({'Actual': Y_test, 'Predicted': y_pred})
-    # print(df_temp.tail())
 
     # Obtener el umbral (threshold) óptimo
     optimal_threshold = get_optimal_threshold(Y_test, y_pred)
-    # print("Umbral óptimo: " + str(optimal_threshold))
 
     # Comparar el último valor de y_pred con el umbral óptimo
     last_y_pred = y_pred[-1]
