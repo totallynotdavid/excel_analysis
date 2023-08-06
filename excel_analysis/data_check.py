@@ -13,6 +13,7 @@ Los pasos que se siguen son:
 7. Comparar el último valor de y_pred con el umbral óptimo
 """
 
+import os
 import pandas as pd
 import numpy as np
 from sklearn import svm, metrics
@@ -39,15 +40,18 @@ def get_head(df, number_of_rows=5):
                'Momentdiez', 'Momentsetenta', 'Momenttrescerocero']].head(number_of_rows)
 
 # Preprocessing
-def load_data(file_name='Base2.xlsx'):
+def load_data(file_name='Base2.xlsx', single_sheet=False):
     """
     Cargar los datos de un archivo Excel con múltiples hojas
     """
-    all_sheets = {}
     xls = pd.ExcelFile(file_name, engine='openpyxl')
-    for sheet_name in xls.sheet_names:
-        all_sheets[sheet_name] = pd.read_excel(xls, sheet_name, index_col='FECHA')
-    return all_sheets
+    if single_sheet:
+        return pd.read_excel(xls, xls.sheet_names[0], index_col='FECHA')
+    else:
+        all_sheets = {}
+        for sheet_name in xls.sheet_names:
+            all_sheets[sheet_name] = pd.read_excel(xls, sheet_name, index_col='FECHA')
+        return all_sheets
 
 def ensure_float64(df):
     """
@@ -115,42 +119,54 @@ def get_optimal_threshold(Y_test, y_pred):
     return optimal_threshold
 
 def main():
-    all_data = load_data()
-    number_of_sheets = len(all_data)
-    print(f"Encontramos {number_of_sheets} hojas en el archivo Excel")
+    test_mode = os.environ.get('TEST_MODE', 'False') == 'True'
+    file_name = 'Base1.xlsx' if test_mode else 'Base2.xlsx'
+    all_data = load_data(single_sheet=False)
 
-    for sheet_name, df in all_data.items():
-        print(f"Trabajando en el stock: {sheet_name}")
+    if test_mode:
+        # Single sheet for test mode
+        print("Running in test mode")
+        df = all_data[list(all_data.keys())[0]]
+        process_stock_data(df, "Test Sheet")
+    else:
+        # Multiple sheets for normal mode
+        number_of_sheets = len(all_data)
+        print(f"Encontramos {number_of_sheets} hojas en el archivo Excel")
+        for sheet_name, df in all_data.items():
+            process_stock_data(df, sheet_name)
 
-        normalize_data(df)
-        df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
-        df.loc[:, 'Detalle'] = df['Detalle'].astype('float')
+def process_stock_data(df, sheet_name):
+    print(f"Trabajando en el stock: {sheet_name}")
 
-        X_train, Y_train, X_test, Y_test = get_training_and_test_data(df)
+    normalize_data(df)
+    df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
+    df.loc[:, 'Detalle'] = df['Detalle'].astype('float')
 
-        # Modelo SVM
-        # clf = train_svm(X_train, Y_train)
-        # yhat = clf.predict(X_test)
+    X_train, Y_train, X_test, Y_test = get_training_and_test_data(df)
 
-        # Modelo de red neuronal
-        nn = train_neural_network(X_train, Y_train)
-        y_pred = nn.predict(X_test)
-        # df_temp = pd.DataFrame({'Actual': Y_test, 'Predicted': y_pred})
-        # print(df_temp.tail())
+    # Modelo SVM
+    # clf = train_svm(X_train, Y_train)
+    # yhat = clf.predict(X_test)
 
-        # Obtener el umbral (threshold) óptimo
-        optimal_threshold = get_optimal_threshold(Y_test, y_pred)
-        # print("Umbral óptimo: " + str(optimal_threshold))
+    # Modelo de red neuronal
+    nn = train_neural_network(X_train, Y_train)
+    y_pred = nn.predict(X_test)
+    # df_temp = pd.DataFrame({'Actual': Y_test, 'Predicted': y_pred})
+    # print(df_temp.tail())
 
-        # Comparar el último valor de y_pred con el umbral óptimo
-        last_y_pred = y_pred[-1]
-        print(f"Último valor de y_pred: {last_y_pred} y umbral óptimo: {optimal_threshold}")
-        if last_y_pred > optimal_threshold:
-            print(f"Los precios de {sheet_name} subirán 📈")
-        else:
-            print(f"Los precios de {sheet_name} bajarán 📉")
-        
-        print("--------------------------------")
+    # Obtener el umbral (threshold) óptimo
+    optimal_threshold = get_optimal_threshold(Y_test, y_pred)
+    # print("Umbral óptimo: " + str(optimal_threshold))
+
+    # Comparar el último valor de y_pred con el umbral óptimo
+    last_y_pred = y_pred[-1]
+    print(f"Último valor de y_pred: {last_y_pred} y umbral óptimo: {optimal_threshold}")
+    if last_y_pred > optimal_threshold:
+        print(f"Los precios de {sheet_name} subirán 📈")
+    else:
+        print(f"Los precios de {sheet_name} bajarán 📉")
+    
+    print("--------------------------------")
 
 if __name__ == "__main__":
     main()
