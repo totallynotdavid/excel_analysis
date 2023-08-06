@@ -46,7 +46,7 @@ def test_get_head():
     da.normalize_data(df)
     head = da.get_head(df)
     assert isinstance(head, pd.DataFrame)
-    assert head.shape == (5, 7)  # Check that we got the first 5 rows of 7 columns
+    assert head.shape == (5, 7)  # Comprobar que tenemos 5 filas de las 7 columnas que queremos
 
 def test_check_dtypes():
     df = pd.DataFrame({
@@ -83,7 +83,7 @@ def test_normalize_data():
         assert df[column].min() == 0.0
         assert df[column].max() == 1.0
 
-# Ensuring that the correct division of the data has been made
+# Asegurarnos de que la división entre training y test data es correcta
 def test_get_training_and_test_data():
     df = da.load_data(single_sheet=True)
     da.normalize_data(df)
@@ -91,7 +91,7 @@ def test_get_training_and_test_data():
     df['Detalle'] = df['Detalle'].astype('float')
     X, Y, X2, Y2 = da.get_training_and_test_data(df)
 
-    # Check for the X values
+    # Revisando para los valores de X
     expected_X = np.array([
         [0.00287822, 0.00710203, 0.01279801, 0.63256638, 0.14308482, 0.10067925],
         [0.00286914, 0.00679073, 0.01270777, 0.39075603, 0.14193188, 0.10809786],
@@ -111,7 +111,7 @@ def test_get_training_and_test_data():
     np.testing.assert_array_almost_equal(X[0:5], expected_X)
     np.testing.assert_array_almost_equal(X2[0:5], expected_X2)
 
-    # Check for the Y values
+    # Revisando para los valores de Y
     expected_Y = np.array([1., 1., 1., 0., 1.])
     expected_Y2 = np.array([1., 0., 0., 0., 0.])
 
