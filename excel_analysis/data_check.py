@@ -1,13 +1,24 @@
 """
-This module is used by the pipeline to check if our sources are correct!
+Autor: David Duran
+Fecha: 05/08/2023
+
+Este módulo se utiliza para comprobar si cierta acción va a subir o bajar usando machine learning.
+Los pasos que se siguen son:
+1. Cargar los datos de un archivo Excel
+2. Normalizar los datos
+3. Dividir los datos en training y test data
+4. Clasificar los datos con SVC (Support Vector Classification)
+5. Entrenar un modelo de red neuronal
+6. Obtener el umbral (threshold) óptimo
+7. Comparar el último valor de y_pred con el umbral óptimo
 """
 
 import pandas as pd
 import numpy as np
-from sklearn import svm
+from sklearn import svm, metrics
 from sklearn.neural_network import MLPRegressor
 
-# Helper functions (used by pytest to test the functions in this module)
+# Helper functions (Son utilizados por pytest en test_data_check)
 def check_data_size(df):
     return df.size
 
@@ -92,6 +103,13 @@ def train_neural_network(X_train, Y_train):
     nn.fit(X_train, Y_train)
     return nn
 
+def get_optimal_threshold(Y_test, y_pred):
+    fpr, tpr, thresholds = metrics.roc_curve(Y_test, y_pred) # fpr = Tasa de falsos positivos que salen positivos, tpr = Tasa de positivos que salen positivos
+    i = np.arange(len(tpr))
+    roc = pd.DataFrame({'fpr': pd.Series(fpr, index=i), 'tpr': pd.Series(tpr, index=i), '1-fpr': pd.Series(1-fpr, index=i), 'tf': pd.Series(tpr - (1-fpr), index=i), 'thresholds': pd.Series(thresholds, index=i)})
+    optimal_threshold = roc.iloc[(roc.tf-0).abs().argsort()[:1]]['thresholds'].values[0]
+    return optimal_threshold
+
 def main():
     df = load_data()
     normalize_data(df)
@@ -100,14 +118,26 @@ def main():
 
     X_train, Y_train, X_test, Y_test = get_training_and_test_data(df)
 
-    # SVM model
+    # Modelo SVM
     clf = train_svm(X_train, Y_train)
     yhat = clf.predict(X_test)
 
-    # Neural Network model
+    # Modelo de red neuronal
     nn = train_neural_network(X_train, Y_train)
     y_pred = nn.predict(X_test)
     df_temp = pd.DataFrame({'Actual': Y_test, 'Predicted': y_pred})
+    print(df_temp.tail())
+
+    # Obtener el umbral (threshold) óptimo
+    optimal_threshold = get_optimal_threshold(Y_test, y_pred)
+    print("Umbral óptimo: " + str(optimal_threshold))
+
+    # Comparar el último valor de y_pred con el umbral óptimo
+    last_y_pred = y_pred[-1]
+    if last_y_pred > optimal_threshold:
+        print("Los precios subirán 📈")
+    else:
+        print("Los precios bajarán 📉")
 
 if __name__ == "__main__":
     main()
