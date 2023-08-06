@@ -13,11 +13,6 @@ Los pasos que se siguen son:
 7. Comparar el último valor de y_pred con el umbral óptimo
 """
 
-# Todo
-# 1. Manejo en caso de que un valor de los datos sea NaN, usar el valor anterior
-# 2. Manejo de excepciones en caso de que el archivo Excel no exista o no se pueda abrir
-# 3. Manejo de excepciones en caso de que el archivo Excel no tenga las columnas que se esperan
-
 import os
 import pandas as pd
 import numpy as np
@@ -56,7 +51,15 @@ def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = F
     """
     Cargar los datos de un archivo Excel con múltiples hojas
     """
-    xls = pd.ExcelFile(file_name, engine='openpyxl')
+    try:
+        xls = pd.ExcelFile(file_name, engine='openpyxl')
+    except FileNotFoundError:
+        print(f"🚨 [ERROR]: El archivo '{file_name}' no fue encontrado. Por favor comprueba la ubicación (path) y el nombre del archivo.")
+        return None
+    except Exception as e:
+        print(f"🚨 [ERROR]: No se puede abrir el archivo '{file_name}'. Error: {str(e)}")
+        return None
+
     if single_sheet:
         return pd.read_excel(xls, xls.sheet_names[0], index_col='FECHA')
     else:
@@ -73,6 +76,20 @@ def ensure_float64(df):
     """
     if not all(df.dtypes == 'float64'):
         raise ValueError("Todas las columnas deben ser de tipo float64")
+
+def handle_non_numeric_values(df, columns_to_check):
+    for column in columns_to_check:
+        non_numeric = df[pd.to_numeric(df[column], errors='coerce').isna()]
+        if not non_numeric.empty:
+            print(f"⚠️  [ALERTA]: Valores no numéricos encontrados en la columna '{column}'.")
+            for index, row in non_numeric.iterrows():
+                print(f"   - Fila: {index}, Valor: {row[column]}")
+            print(f"   - No te preocupes, los valores no numéricos serán convertidos a NaN.")
+        # Convertir los valores no numéricos a NaN usando coerce
+        df[column] = pd.to_numeric(df[column], errors='coerce')
+    # Reemplazar los NaN con el valor anterior
+    # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html
+    df.fillna(method='ffill', inplace=True)
 
 # Processing
 def normalize_column(df, column_name):
@@ -135,6 +152,9 @@ def main():
     test_mode = os.environ.get('TEST_MODE', 'False') == 'True'
     all_data = load_data(single_sheet=False)
 
+    if all_data is None:
+        return
+
     if test_mode:
         # Una sola hoja para modo de prueba
         print("Ejecutando en modo de prueba")
@@ -143,7 +163,7 @@ def main():
     else:
         # Múltiples hojas para modo de producción
         number_of_sheets = len(all_data)
-        print(f"Encontramos {number_of_sheets} hojas en el archivo Excel")
+        print(f"Encontramos {number_of_sheets} hojas en el archivo Excel\n")
         for sheet_name, df in all_data.items():
             process_stock_data(df, sheet_name)
 
@@ -151,11 +171,15 @@ def process_stock_data(df, sheet_name):
     # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
     expected_columns = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
     if not all(column in df.columns for column in expected_columns):
-        print(f"🚨 Error: La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
+        print(f"🚨 [ERROR]: La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
         print(f"--------------------------------")
         return
 
     print(f"Trabajando en el stock: {sheet_name}")
+
+    # Validación de datos en el dataframe
+    columns_to_check = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
+    handle_non_numeric_values(df, columns_to_check)
 
     normalize_data(df)
     df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
@@ -174,9 +198,9 @@ def process_stock_data(df, sheet_name):
     last_y_pred = y_pred[-1]
     print(f"Último valor de y_pred: {last_y_pred} y umbral óptimo: {optimal_threshold}")
     if last_y_pred > optimal_threshold:
-        print(f"Los precios de {sheet_name} subirán 📈")
+        print(f"🤔 [VEREDICTO]: Los precios de {sheet_name} subirán 📈")
     else:
-        print(f"Los precios de {sheet_name} bajarán 📉")
+        print(f"🤔 [VEREDICTO]: Los precios de {sheet_name} bajarán 📉")
     
     print("--------------------------------")
 
