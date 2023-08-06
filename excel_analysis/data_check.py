@@ -13,11 +13,24 @@ Los pasos que se siguen son:
 7. Comparar el último valor de y_pred con el umbral óptimo
 """
 
+# Todo
+# 1. Manejo en caso de que un valor de los datos sea NaN, usar el valor anterior
+# 2. Manejo de excepciones en caso de que el archivo Excel no exista o no se pueda abrir
+# 3. Manejo de excepciones en caso de que el archivo Excel no tenga las columnas que se esperan
+
 import os
 import pandas as pd
 import numpy as np
 from sklearn import svm, metrics
 from sklearn.neural_network import MLPRegressor
+
+# Constantes
+EXCEL_FILE_NAME = 'Base2.xlsx'
+COLUMN_NAMES = {
+    "price": "Precio",
+    "features": ['Movilveintiuno', 'Movilcincocinco', 'Movilunocuatrocuatro', 'Momentdiez', 'Momentsetenta', 'Momenttrescerocero'],
+    "detail": 'Detalle',
+}
 
 # Helper functions (Son utilizados por pytest en test_data_check)
 def check_data_size(df):
@@ -30,17 +43,16 @@ def check_null_values(df):
     return df.isnull().sum()
 
 def check_top_5_price_counts(df):
-    return df['Precio'].value_counts().head(5)
+    return df[COLUMN_NAMES["price"]].value_counts().head(5)
 
 def get_column_names(df):
     return df.columns
 
 def get_head(df, number_of_rows=5):
-    return df[['Precio', 'Movilveintiuno', 'Movilcincocinco', 'Movilunocuatrocuatro',
-               'Momentdiez', 'Momentsetenta', 'Momenttrescerocero']].head(number_of_rows)
+    return df[[COLUMN_NAMES["price"]] + COLUMN_NAMES["features"]].head(number_of_rows)
 
 # Preprocessing
-def load_data(file_name='Base2.xlsx', single_sheet=False):
+def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = False para modo de producción
     """
     Cargar los datos de un archivo Excel con múltiples hojas
     """
@@ -50,7 +62,9 @@ def load_data(file_name='Base2.xlsx', single_sheet=False):
     else:
         all_sheets = {}
         for sheet_name in xls.sheet_names:
-            all_sheets[sheet_name] = pd.read_excel(xls, sheet_name, index_col='FECHA')
+            sheet_data = pd.read_excel(xls, sheet_name, index_col='FECHA')
+            if not sheet_data.empty:  # Ignorar hojas vacías
+                all_sheets[sheet_name] = sheet_data
         return all_sheets
 
 def ensure_float64(df):
@@ -71,8 +85,7 @@ def normalize_data(df):
     """
     Normalizar datos en columnas específicas del dataframe
     """
-    columns_to_normalize = ['Precio', 'Movilveintiuno', 'Movilcincocinco', 'Movilunocuatrocuatro',
-                            'Momentdiez', 'Momentsetenta', 'Momenttrescerocero']
+    columns_to_normalize = [COLUMN_NAMES["price"]] + COLUMN_NAMES["features"]
     for column in columns_to_normalize:
         normalize_column(df, column)
 
@@ -83,7 +96,7 @@ def get_training_and_test_data(df):
     division1_df = df.iloc[0:2886, 0:9]
     division2_df = df.iloc[2887:3607, 0:9]
 
-    feature_cols = ['Movilveintiuno', 'Movilcincocinco', 'Movilunocuatrocuatro', 'Momentdiez', 'Momentsetenta', 'Momenttrescerocero']
+    feature_cols = COLUMN_NAMES["features"]
     
     X_train = division1_df[feature_cols].values
     Y_train = division1_df['Detalle'].values.astype('float')
@@ -135,6 +148,13 @@ def main():
             process_stock_data(df, sheet_name)
 
 def process_stock_data(df, sheet_name):
+    # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
+    expected_columns = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
+    if not all(column in df.columns for column in expected_columns):
+        print(f"🚨 Error: La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
+        print(f"--------------------------------")
+        return
+
     print(f"Trabajando en el stock: {sheet_name}")
 
     normalize_data(df)
