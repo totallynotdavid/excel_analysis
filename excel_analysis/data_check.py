@@ -39,11 +39,15 @@ def get_head(df, number_of_rows=5):
                'Momentdiez', 'Momentsetenta', 'Momenttrescerocero']].head(number_of_rows)
 
 # Preprocessing
-def load_data(file_name='Base1.xlsx'):
+def load_data(file_name='Base2.xlsx'):
     """
-    Cargar los datos de un archivo Excel
+    Cargar los datos de un archivo Excel con múltiples hojas
     """
-    return pd.read_excel(file_name, engine='openpyxl', index_col='FECHA')
+    all_sheets = {}
+    xls = pd.ExcelFile(file_name, engine='openpyxl')
+    for sheet_name in xls.sheet_names:
+        all_sheets[sheet_name] = pd.read_excel(xls, sheet_name, index_col='FECHA')
+    return all_sheets
 
 def ensure_float64(df):
     """
@@ -111,33 +115,42 @@ def get_optimal_threshold(Y_test, y_pred):
     return optimal_threshold
 
 def main():
-    df = load_data()
-    normalize_data(df)
-    df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
-    df['Detalle'] = df['Detalle'].astype('float')
+    all_data = load_data()
+    number_of_sheets = len(all_data)
+    print(f"Encontramos {number_of_sheets} hojas en el archivo Excel")
 
-    X_train, Y_train, X_test, Y_test = get_training_and_test_data(df)
+    for sheet_name, df in all_data.items():
+        print(f"Trabajando en el stock: {sheet_name}")
 
-    # Modelo SVM
-    clf = train_svm(X_train, Y_train)
-    yhat = clf.predict(X_test)
+        normalize_data(df)
+        df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
+        df.loc[:, 'Detalle'] = df['Detalle'].astype('float')
 
-    # Modelo de red neuronal
-    nn = train_neural_network(X_train, Y_train)
-    y_pred = nn.predict(X_test)
-    df_temp = pd.DataFrame({'Actual': Y_test, 'Predicted': y_pred})
-    print(df_temp.tail())
+        X_train, Y_train, X_test, Y_test = get_training_and_test_data(df)
 
-    # Obtener el umbral (threshold) óptimo
-    optimal_threshold = get_optimal_threshold(Y_test, y_pred)
-    print("Umbral óptimo: " + str(optimal_threshold))
+        # Modelo SVM
+        # clf = train_svm(X_train, Y_train)
+        # yhat = clf.predict(X_test)
 
-    # Comparar el último valor de y_pred con el umbral óptimo
-    last_y_pred = y_pred[-1]
-    if last_y_pred > optimal_threshold:
-        print("Los precios subirán 📈")
-    else:
-        print("Los precios bajarán 📉")
+        # Modelo de red neuronal
+        nn = train_neural_network(X_train, Y_train)
+        y_pred = nn.predict(X_test)
+        # df_temp = pd.DataFrame({'Actual': Y_test, 'Predicted': y_pred})
+        # print(df_temp.tail())
+
+        # Obtener el umbral (threshold) óptimo
+        optimal_threshold = get_optimal_threshold(Y_test, y_pred)
+        # print("Umbral óptimo: " + str(optimal_threshold))
+
+        # Comparar el último valor de y_pred con el umbral óptimo
+        last_y_pred = y_pred[-1]
+        print(f"Último valor de y_pred: {last_y_pred} y umbral óptimo: {optimal_threshold}")
+        if last_y_pred > optimal_threshold:
+            print(f"Los precios de {sheet_name} subirán 📈")
+        else:
+            print(f"Los precios de {sheet_name} bajarán 📉")
+        
+        print("--------------------------------")
 
 if __name__ == "__main__":
     main()
