@@ -8,6 +8,7 @@ Este paquete se utiliza para comprobar si cierta acción va a subir o bajar usan
 import os
 import pandas as pd
 import numpy as np
+import argparse
 import logging
 from sklearn import svm, metrics
 from sklearn.neural_network import MLPRegressor
@@ -15,7 +16,14 @@ from sklearn.neural_network import MLPRegressor
 from .constants import EXCEL_FILE_NAME, COLUMN_NAMES
 from .helpers import check_data_size, check_data_shape, check_null_values, check_top_5_price_counts, get_column_names, get_head
 
+# Sistema de logging
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+
+# Argumentos
+def parse_args():
+    parser = argparse.ArgumentParser(description="Ejecuta el programa de análisis de acciones")
+    parser.add_argument("--debug", help="Mostrar más detalles del proceso", type=lambda x: (str(x).lower() == 'true'))
+    return parser.parse_args()
 
 # Preprocesamiento
 def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = False para modo de producción
@@ -112,8 +120,11 @@ def get_optimal_threshold(Y_test, y_pred):
     return optimal_threshold
 
 def main():
-    show_logs = os.environ.get('SHOW_LOGS', 'True') == 'True'
-    if not show_logs:
+    args = parse_args()
+
+    if args.debug:
+        logging.getLogger().setLevel(logging.INFO)
+    else:
         logging.getLogger().setLevel(logging.ERROR)
 
     test_mode = os.environ.get('TEST_MODE', 'False') == 'True'
@@ -168,8 +179,8 @@ def process_stock_data(df, sheet_name):
     B = df_temp['threshold_comparison'].sum()
 
     final_value = A - B
-
-    logging.info(f"💰 Valor de final de esta hoja: {final_value}")
+    
+    print(f"💰 Valor de final de esta hoja: {final_value}")
 
 if __name__ == "__main__":
     main()
