@@ -17,7 +17,7 @@ pytest = "^7.4.0"
 pandas = "^2.0.3"
 
 [tool.poetry.scripts]
-start = "excel_analysis.data_check:main"
+start = "excel_analysis.stock_processing:main"
 
 [build-system]
 requires = ["poetry-core"]

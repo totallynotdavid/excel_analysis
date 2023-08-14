@@ -2,51 +2,22 @@
 Autor: David Duran
 Fecha: 05/08/2023
 
-Este módulo se utiliza para comprobar si cierta acción va a subir o bajar usando machine learning.
-Los pasos que se siguen son:
-1. Cargar los datos de un archivo Excel
-2. Normalizar los datos
-3. Dividir los datos en training y test data
-4. Clasificar los datos con SVC (Support Vector Classification)
-5. Entrenar un modelo de red neuronal
-6. Obtener el umbral (threshold) óptimo
-7. Comparar el último valor de y_pred con el umbral óptimo
+Este paquete se utiliza para comprobar si cierta acción va a subir o bajar usando machine learning.
 """
 
 import os
 import pandas as pd
 import numpy as np
+import logging
 from sklearn import svm, metrics
 from sklearn.neural_network import MLPRegressor
 
-# Constantes
-EXCEL_FILE_NAME = 'Base2.xlsx'
-COLUMN_NAMES = {
-    "price": "Precio",
-    "features": ['Movilveintiuno', 'Movilcincocinco', 'Movilunocuatrocuatro', 'Momentdiez', 'Momentsetenta', 'Momenttrescerocero'],
-    "detail": 'Detalle',
-}
+from .constants import EXCEL_FILE_NAME, COLUMN_NAMES
+from .helpers import check_data_size, check_data_shape, check_null_values, check_top_5_price_counts, get_column_names, get_head
 
-# Helper functions (Son utilizados por pytest en test_data_check)
-def check_data_size(df):
-    return df.size
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
-def check_data_shape(df):
-    return df.shape
-
-def check_null_values(df):
-    return df.isnull().sum()
-
-def check_top_5_price_counts(df):
-    return df[COLUMN_NAMES["price"]].value_counts().head(5)
-
-def get_column_names(df):
-    return df.columns
-
-def get_head(df, number_of_rows=5):
-    return df[[COLUMN_NAMES["price"]] + COLUMN_NAMES["features"]].head(number_of_rows)
-
-# Preprocessing
+# Preprocesamiento
 def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = False para modo de producción
     """
     Cargar los datos de un archivo Excel con múltiples hojas
@@ -81,17 +52,17 @@ def handle_non_numeric_values(df, columns_to_check):
     for column in columns_to_check:
         non_numeric = df[pd.to_numeric(df[column], errors='coerce').isna()]
         if not non_numeric.empty:
-            print(f"⚠️  [ALERTA]: Valores no numéricos encontrados en la columna '{column}'.")
+            logging.warning(f"Valores no numéricos encontrados en la columna '{column}'.")
             for index, row in non_numeric.iterrows():
-                print(f"   - Fila: {index}, Valor: {row[column]}")
-            print(f"   - No te preocupes, los valores no numéricos serán convertidos a NaN.")
+                logging.info(f"Fila: {index}, Valor: {row[column]}")
+            logging.info(f"No te preocupes, los valores no numéricos serán convertidos a NaN.")
         # Convertir los valores no numéricos a NaN usando coerce
         df[column] = pd.to_numeric(df[column], errors='coerce')
     # Reemplazar los NaN con el valor anterior
     # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html
     df.fillna(method='ffill', inplace=True)
 
-# Processing
+# Procesamiento
 def normalize_column(df, column_name):
     """
     Normalizar datos en una columna específica del dataframe
@@ -125,14 +96,6 @@ def get_training_and_test_data(df):
 
     return X_train, Y_train, X_test, Y_test
 
-def train_svm(X_train, Y_train):
-    """
-    Clasificar los datos con SVC (Support Vector Classification)
-    """
-    clf = svm.SVC(kernel='poly', degree=3)
-    clf.fit(X_train, Y_train)
-    return clf
-
 def train_neural_network(X_train, Y_train):
     """
     Entrenar un modelo de red neuronal
@@ -149,6 +112,10 @@ def get_optimal_threshold(Y_test, y_pred):
     return optimal_threshold
 
 def main():
+    show_logs = os.environ.get('SHOW_LOGS', 'True') == 'True'
+    if not show_logs:
+        logging.getLogger().setLevel(logging.ERROR)
+
     test_mode = os.environ.get('TEST_MODE', 'False') == 'True'
     all_data = load_data(single_sheet=False)
 
@@ -157,13 +124,13 @@ def main():
 
     if test_mode:
         # Una sola hoja para modo de prueba
-        print("Ejecutando en modo de prueba")
+        logging.info("Ejecutando en modo de prueba")
         df = all_data[list(all_data.keys())[0]]
         process_stock_data(df, "Test Sheet")
     else:
         # Múltiples hojas para modo de producción
         number_of_sheets = len(all_data)
-        print(f"Encontramos {number_of_sheets} hojas en el archivo Excel\n")
+        logging.info(f"📂 Encontramos {number_of_sheets} hojas en el archivo Excel\n")
         for sheet_name, df in all_data.items():
             process_stock_data(df, sheet_name)
 
@@ -171,11 +138,11 @@ def process_stock_data(df, sheet_name):
     # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
     expected_columns = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
     if not all(column in df.columns for column in expected_columns):
-        print(f"🚨 [ERROR]: La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
-        print(f"--------------------------------")
+        logging.error(f"La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
+        logging.info(f"--------------------------------")
         return
 
-    print(f"Trabajando en el stock: {sheet_name}")
+    logging.info(f"Trabajando en el stock: {sheet_name}")
 
     # Validación de datos en el dataframe
     columns_to_check = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
@@ -194,15 +161,15 @@ def process_stock_data(df, sheet_name):
     # Obtener el umbral (threshold) óptimo
     optimal_threshold = get_optimal_threshold(Y_test, y_pred)
 
-    # Comparar el último valor de y_pred con el umbral óptimo
-    last_y_pred = y_pred[-1]
-    print(f"Último valor de y_pred: {last_y_pred} y umbral óptimo: {optimal_threshold}")
-    if last_y_pred > optimal_threshold:
-        print(f"🤔 [VEREDICTO]: Los precios de {sheet_name} subirán 📈")
-    else:
-        print(f"🤔 [VEREDICTO]: Los precios de {sheet_name} bajarán 📉")
-    
-    print("--------------------------------")
+    # Sumar todos los valores de Y_test
+    A = np.sum(Y_test)
+    df_temp = pd.DataFrame({'Predicted': y_pred})
+    df_temp['threshold_comparison'] = (df_temp['Predicted'] > optimal_threshold).astype(int)
+    B = df_temp['threshold_comparison'].sum()
+
+    final_value = A - B
+
+    logging.info(f"💰 Valor de final de esta hoja: {final_value}")
 
 if __name__ == "__main__":
     main()
