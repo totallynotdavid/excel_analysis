@@ -13,7 +13,7 @@ import logging
 from sklearn import svm, metrics
 from sklearn.neural_network import MLPRegressor
 
-from .constants import EXCEL_FILE_NAME, COLUMN_NAMES
+from .constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
 from .helpers import check_data_size, check_data_shape, check_null_values, check_top_5_price_counts, get_column_names, get_head
 
 # Sistema de logging
@@ -133,19 +133,32 @@ def main():
     if all_data is None:
         return
 
+    results_list = []
+
     if test_mode:
         # Una sola hoja para modo de prueba
         logging.info("Ejecutando en modo de prueba")
         df = all_data[list(all_data.keys())[0]]
-        process_stock_data(df, "Test Sheet")
+        process_stock_data(df, "Test Sheet", results_list)
     else:
         # Múltiples hojas para modo de producción
         number_of_sheets = len(all_data)
         logging.info(f"📂 Encontramos {number_of_sheets} hojas en el archivo Excel\n")
         for sheet_name, df in all_data.items():
-            process_stock_data(df, sheet_name)
+            process_stock_data(df, sheet_name, results_list)
 
-def process_stock_data(df, sheet_name):
+    # Ordenando los resultados
+    sorted_results = sorted(results_list, key=lambda x: x.final_value, reverse=True)
+
+    print("Las 10 mejores 📈:")
+    for result in sorted_results[:10]:
+        print(f"- Hoja: {result.sheet_name}, Valor: {result.final_value}")
+
+    print("\nLas 10 peores 📉:")
+    for result in sorted_results[-10:]:
+        print(f"- Hoja: {result.sheet_name}, Valor: {result.final_value}")
+
+def process_stock_data(df, sheet_name, results_list):
     # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
     expected_columns = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
     if not all(column in df.columns for column in expected_columns):
@@ -179,8 +192,8 @@ def process_stock_data(df, sheet_name):
     B = df_temp['threshold_comparison'].sum()
 
     final_value = A - B
-    
-    print(f"💰 Valor de final de esta hoja: {final_value}")
+    results_list.append(SheetResult(sheet_name, final_value))
+    logging.info(f"💰 Valor de final de esta hoja: {final_value}")
 
 if __name__ == "__main__":
     main()
