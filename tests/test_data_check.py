@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-import excel_analysis.data_check as da
+from excel_analysis import stock_processing as da
 
 def test_load_data():
     df = da.load_data(single_sheet=True)
@@ -27,7 +27,8 @@ def test_check_top_5_price_counts():
     expected_top_5 = pd.Series([3, 3, 3, 3, 3], 
                                index=pd.Index([43.125, 25.188, 31.650, 24.335, 24.905], name='Precio'), 
                                name='count')
-    pd.testing.assert_series_equal(da.check_top_5_price_counts(df), expected_top_5)
+    price_column = da.COLUMN_NAMES["price"]
+    pd.testing.assert_series_equal(da.check_top_5_price_counts(df, price_column), expected_top_5)
 
 def test_get_column_names():
     df = da.load_data(single_sheet=True)
@@ -44,7 +45,9 @@ def test_normalize_column():
 def test_get_head():
     df = da.load_data(single_sheet=True)
     da.normalize_data(df)
-    head = da.get_head(df)
+    price_column = da.COLUMN_NAMES["price"]
+    features = da.COLUMN_NAMES["features"]
+    head = da.get_head(df, price_column, features)
     assert isinstance(head, pd.DataFrame)
     assert head.shape == (5, 7)  # Comprobar que tenemos 5 filas de las 7 columnas que queremos
 
