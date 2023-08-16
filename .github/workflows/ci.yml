@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: "master"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    reviewers:
+      - "totallynotdavid"
+    labels:
+      - "dependencies"
