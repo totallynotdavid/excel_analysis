@@ -92,7 +92,7 @@ def test_get_training_and_test_data():
     da.normalize_data(df)
     df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
     df['Detalle'] = df['Detalle'].astype('float')
-    X, Y, X2, Y2 = da.get_training_and_test_data(df)
+    X, Y, X2, Y2 = da.dividir_datos_entrenamiento_prueba(df)
 
     # Revisando para los valores de X
     expected_X = np.array([

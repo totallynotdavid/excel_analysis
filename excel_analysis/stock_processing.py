@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import argparse
 import logging
-from sklearn import svm, metrics
+from sklearn import svm, metrics, model_selection
 from sklearn.neural_network import MLPRegressor
 
 from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
@@ -89,14 +89,15 @@ def dividir_datos_entrenamiento_prueba(df):
     """
     Dividir el dataframe en training y test data
     """
+
+    feature_cols = COLUMN_NAMES["features"]
+
     datos_entrenamiento = df.iloc[0:2886, 0:9]
     datos_prueba = df.iloc[2887:3607, 0:9]
 
-    feature_cols = COLUMN_NAMES["features"]
-    
     X_train = datos_entrenamiento[feature_cols].values
     Y_train = datos_entrenamiento['Detalle'].values.astype('float')
-    
+
     X_test = datos_prueba[feature_cols].values
     Y_test = datos_prueba['Detalle'].values.astype('float')
 
@@ -118,6 +119,43 @@ def get_optimal_threshold(Y_test, y_pred):
     roc = pd.DataFrame({'fpr': pd.Series(fpr, index=i), 'tpr': pd.Series(tpr, index=i), '1-fpr': pd.Series(1-fpr, index=i), 'tf': pd.Series(tpr - (1-fpr), index=i), 'thresholds': pd.Series(thresholds, index=i)})
     optimal_threshold = roc.iloc[(roc.tf-0).abs().argsort()[:1]]['thresholds'].values[0]
     return optimal_threshold
+
+def process_stock_data(df, sheet_name, results_list):
+    # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
+    expected_columns = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
+    if not all(column in df.columns for column in expected_columns):
+        logging.error(f"La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
+        logging.info(f"--------------------------------")
+        return
+
+    logging.info(f"Trabajando en el stock: {sheet_name}")
+
+    # Validación de datos en el dataframe
+    columns_to_check = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
+    handle_non_numeric_values(df, columns_to_check)
+
+    normalize_data(df)
+    df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
+    df.loc[:, 'Detalle'] = df['Detalle'].astype('float')
+
+    X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)
+
+    # Modelo de red neuronal
+    modelo_red_neuronal = entrenar_regresor_mlp(X_train, Y_train)
+    y_pred = modelo_red_neuronal.predict(X_test)
+
+    # Obtener el umbral (threshold) óptimo
+    optimal_threshold = get_optimal_threshold(Y_test, y_pred)
+
+    # Sumar todos los valores de Y_test
+    conteo_positivos_reales  = np.sum(Y_test)
+    df_predicciones = pd.DataFrame({'Predicted': y_pred})
+    df_predicciones['threshold_comparison'] = (df_predicciones['Predicted'] > optimal_threshold).astype(int)
+    conteo_positivos_predichos = df_predicciones['threshold_comparison'].sum()
+
+    final_value = conteo_positivos_reales - conteo_positivos_predichos
+    results_list.append(SheetResult(sheet_name, final_value))
+    logging.info(f"💰 Valor de final de esta hoja: {final_value}")
 
 def main():
     args = parse_args()
@@ -157,43 +195,6 @@ def main():
     print("\nLas 10 peores 📉:")
     for result in sorted_results[-10:]:
         print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
-
-def process_stock_data(df, sheet_name, results_list):
-    # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
-    expected_columns = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
-    if not all(column in df.columns for column in expected_columns):
-        logging.error(f"La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
-        logging.info(f"--------------------------------")
-        return
-
-    logging.info(f"Trabajando en el stock: {sheet_name}")
-
-    # Validación de datos en el dataframe
-    columns_to_check = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
-    handle_non_numeric_values(df, columns_to_check)
-
-    normalize_data(df)
-    df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
-    df.loc[:, 'Detalle'] = df['Detalle'].astype('float')
-
-    X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)
-
-    # Modelo de red neuronal
-    modelo_red_neuronal = entrenar_regresor_mlp(X_train, Y_train)
-    y_pred = modelo_red_neuronal.predict(X_test)
-
-    # Obtener el umbral (threshold) óptimo
-    optimal_threshold = get_optimal_threshold(Y_test, y_pred)
-
-    # Sumar todos los valores de Y_test
-    conteo_positivos_reales  = np.sum(Y_test)
-    df_predicciones = pd.DataFrame({'Predicted': y_pred})
-    df_predicciones['threshold_comparison'] = (df_predicciones['Predicted'] > optimal_threshold).astype(int)
-    conteo_positivos_predichos = df_predicciones['threshold_comparison'].sum()
-
-    final_value = conteo_positivos_reales - conteo_positivos_predichos
-    results_list.append(SheetResult(sheet_name, final_value))
-    logging.info(f"💰 Valor de final de esta hoja: {final_value}")
 
 if __name__ == "__main__":
     main()
