@@ -85,27 +85,21 @@ def normalize_data(df):
     for column in columns_to_normalize:
         normalize_column(df, column)
 
-def dividir_datos_entrenamiento_prueba(df, dynamic_split=False, test_size=0.2, random_state=None):
+def dividir_datos_entrenamiento_prueba(df):
     """
     Dividir el dataframe en training y test data
     """
 
     feature_cols = COLUMN_NAMES["features"]
 
-    if dynamic_split:
-        X = df[feature_cols].values
-        Y = df['Detalle'].values.astype('float')
-        X_train, X_test, Y_train, Y_test = model_selection.train_test_split(X, Y, test_size=test_size, random_state=random_state)
+    datos_entrenamiento = df.iloc[0:2886, 0:9]
+    datos_prueba = df.iloc[2887:3607, 0:9]
 
-    else: # Este caso es para pasar los tests (legacy)
-        datos_entrenamiento = df.iloc[0:2886, 0:9]
-        datos_prueba = df.iloc[2887:3607, 0:9]
+    X_train = datos_entrenamiento[feature_cols].values
+    Y_train = datos_entrenamiento['Detalle'].values.astype('float')
 
-        X_train = datos_entrenamiento[feature_cols].values
-        Y_train = datos_entrenamiento['Detalle'].values.astype('float')
-    
-        X_test = datos_prueba[feature_cols].values
-        Y_test = datos_prueba['Detalle'].values.astype('float')
+    X_test = datos_prueba[feature_cols].values
+    Y_test = datos_prueba['Detalle'].values.astype('float')
 
     ensure_float64(df)
 
@@ -144,7 +138,7 @@ def process_stock_data(df, sheet_name, results_list):
     df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
     df.loc[:, 'Detalle'] = df['Detalle'].astype('float')
 
-    X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df, dynamic_split=True)
+    X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)
 
     # Modelo de red neuronal
     modelo_red_neuronal = entrenar_regresor_mlp(X_train, Y_train)
