@@ -13,8 +13,8 @@ import logging
 from sklearn import svm, metrics
 from sklearn.neural_network import MLPRegressor
 
-from .constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
-from .helpers import check_data_size, check_data_shape, check_null_values, check_top_5_price_counts, get_column_names, get_head
+from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
+from excel_analysis.helpers import check_data_size, check_data_shape, check_null_values, check_top_5_price_counts, get_column_names, get_head
 
 # Sistema de logging
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
