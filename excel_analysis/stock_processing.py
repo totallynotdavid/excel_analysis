@@ -85,32 +85,32 @@ def normalize_data(df):
     for column in columns_to_normalize:
         normalize_column(df, column)
 
-def get_training_and_test_data(df):
+def dividir_datos_entrenamiento_prueba(df):
     """
     Dividir el dataframe en training y test data
     """
-    division1_df = df.iloc[0:2886, 0:9]
-    division2_df = df.iloc[2887:3607, 0:9]
+    datos_entrenamiento = df.iloc[0:2886, 0:9]
+    datos_prueba = df.iloc[2887:3607, 0:9]
 
     feature_cols = COLUMN_NAMES["features"]
     
-    X_train = division1_df[feature_cols].values
-    Y_train = division1_df['Detalle'].values.astype('float')
+    X_train = datos_entrenamiento[feature_cols].values
+    Y_train = datos_entrenamiento['Detalle'].values.astype('float')
     
-    X_test = division2_df[feature_cols].values
-    Y_test = division2_df['Detalle'].values.astype('float')
+    X_test = datos_prueba[feature_cols].values
+    Y_test = datos_prueba['Detalle'].values.astype('float')
 
     ensure_float64(df)
 
     return X_train, Y_train, X_test, Y_test
 
-def train_neural_network(X_train, Y_train):
+def entrenar_regresor_mlp(X_train, Y_train):
     """
     Entrenar un modelo de red neuronal
     """
-    nn = MLPRegressor(activation='logistic', hidden_layer_sizes=(200), max_iter=1000, solver='adam')
-    nn.fit(X_train, Y_train)
-    return nn
+    modelo_red_neuronal = MLPRegressor(activation='logistic', hidden_layer_sizes=(200), max_iter=1000, solver='adam')
+    modelo_red_neuronal.fit(X_train, Y_train)
+    return modelo_red_neuronal
 
 def get_optimal_threshold(Y_test, y_pred):
     fpr, tpr, thresholds = metrics.roc_curve(Y_test, y_pred) # fpr = Tasa de falsos positivos que salen positivos, tpr = Tasa de positivos que salen positivos
@@ -152,11 +152,11 @@ def main():
 
     print("Las 10 mejores 📈:")
     for result in sorted_results[:10]:
-        print(f"- Hoja: {result.sheet_name}, Valor: {result.final_value}")
+        print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
 
     print("\nLas 10 peores 📉:")
     for result in sorted_results[-10:]:
-        print(f"- Hoja: {result.sheet_name}, Valor: {result.final_value}")
+        print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
 
 def process_stock_data(df, sheet_name, results_list):
     # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
@@ -176,22 +176,22 @@ def process_stock_data(df, sheet_name, results_list):
     df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
     df.loc[:, 'Detalle'] = df['Detalle'].astype('float')
 
-    X_train, Y_train, X_test, Y_test = get_training_and_test_data(df)
+    X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)
 
     # Modelo de red neuronal
-    nn = train_neural_network(X_train, Y_train)
-    y_pred = nn.predict(X_test)
+    modelo_red_neuronal = entrenar_regresor_mlp(X_train, Y_train)
+    y_pred = modelo_red_neuronal.predict(X_test)
 
     # Obtener el umbral (threshold) óptimo
     optimal_threshold = get_optimal_threshold(Y_test, y_pred)
 
     # Sumar todos los valores de Y_test
-    A = np.sum(Y_test)
-    df_temp = pd.DataFrame({'Predicted': y_pred})
-    df_temp['threshold_comparison'] = (df_temp['Predicted'] > optimal_threshold).astype(int)
-    B = df_temp['threshold_comparison'].sum()
+    conteo_positivos_reales  = np.sum(Y_test)
+    df_predicciones = pd.DataFrame({'Predicted': y_pred})
+    df_predicciones['threshold_comparison'] = (df_predicciones['Predicted'] > optimal_threshold).astype(int)
+    conteo_positivos_predichos = df_predicciones['threshold_comparison'].sum()
 
-    final_value = A - B
+    final_value = conteo_positivos_reales - conteo_positivos_predichos
     results_list.append(SheetResult(sheet_name, final_value))
     logging.info(f"💰 Valor de final de esta hoja: {final_value}")
 
