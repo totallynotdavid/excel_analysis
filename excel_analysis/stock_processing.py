@@ -22,7 +22,8 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 # Argumentos
 def parse_args():
     parser = argparse.ArgumentParser(description="Ejecuta el programa de análisis de acciones")
-    parser.add_argument("--debug", help="Mostrar más detalles del proceso", type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument("--debug", help="Mostrar más detalles del proceso",
+                        type=lambda x: (str(x).lower() == 'true'))
     return parser.parse_args()
 
 # Preprocesamiento
@@ -31,23 +32,17 @@ def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = F
     Cargar los datos de un archivo Excel con múltiples hojas
     """
     try:
-        xls = pd.ExcelFile(file_name, engine='openpyxl')
+        data = pd.read_excel(file_name, sheet_name=None, engine='openpyxl', index_col='FECHA')
     except FileNotFoundError:
-        print(f"🚨 [ERROR]: El archivo '{file_name}' no fue encontrado. Por favor comprueba la ubicación (path) y el nombre del archivo.")
+        logging.error(f"El archivo '{file_name}' no fue encontrado. Por favor comprueba la ubicación (path) y el nombre del archivo.")
         return None
     except Exception as e:
-        print(f"🚨 [ERROR]: No se puede abrir el archivo '{file_name}'. Error: {str(e)}")
+        logging.error(f"No se puede abrir el archivo '{file_name}'. Error: {str(e)}")
         return None
 
     if single_sheet:
-        return pd.read_excel(xls, xls.sheet_names[0], index_col='FECHA')
-    else:
-        all_sheets = {}
-        for sheet_name in xls.sheet_names:
-            sheet_data = pd.read_excel(xls, sheet_name, index_col='FECHA')
-            if not sheet_data.empty:  # Ignorar hojas vacías
-                all_sheets[sheet_name] = sheet_data
-        return all_sheets
+        return {list(data.keys())[0]: data[list(data.keys())[0]]}
+    return data
 
 def ensure_float64(df):
     """
