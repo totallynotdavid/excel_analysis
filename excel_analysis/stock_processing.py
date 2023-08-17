@@ -66,9 +66,11 @@ def handle_non_numeric_values(df, columns_to_check):
             logging.info(f"No te preocupes, los valores no numéricos serán convertidos a NaN.")
         # Convertir los valores no numéricos a NaN usando coerce
         df[column] = pd.to_numeric(df[column], errors='coerce')
+        df[column] = df[column].astype('float64')
     # Reemplazar los NaN con el valor anterior
     # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html
     df.fillna(method='ffill', inplace=True)
+    df['PX_VOLUME'] = df['PX_VOLUME'].astype('float64')
 
 # Procesamiento
 def normalize_column(df, column_name):
@@ -92,16 +94,10 @@ def dividir_datos_entrenamiento_prueba(df):
 
     feature_cols = COLUMN_NAMES["features"]
 
-    datos_entrenamiento = df.iloc[0:2886, 0:9]
-    datos_prueba = df.iloc[2887:3607, 0:9]
+    X = df[feature_cols].values
+    Y = df['DETALLE'].values.astype('float')
 
-    X_train = datos_entrenamiento[feature_cols].values
-    Y_train = datos_entrenamiento['Detalle'].values.astype('float')
-
-    X_test = datos_prueba[feature_cols].values
-    Y_test = datos_prueba['Detalle'].values.astype('float')
-
-    ensure_float64(df)
+    X_train, X_test, Y_train, Y_test = model_selection.train_test_split(X, Y, test_size=0.2, random_state=42)
 
     return X_train, Y_train, X_test, Y_test
 
@@ -135,8 +131,9 @@ def process_stock_data(df, sheet_name, results_list):
     handle_non_numeric_values(df, columns_to_check)
 
     normalize_data(df)
-    df = df[pd.to_numeric(df['Detalle'], errors='coerce').notnull()]
-    df.loc[:, 'Detalle'] = df['Detalle'].astype('float')
+    df = df[pd.to_numeric(df['DETALLE'], errors='coerce').notnull()]
+    df.loc[:, 'DETALLE'] = df['DETALLE'].astype('float')
+    ensure_float64(df)
 
     X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)
 
