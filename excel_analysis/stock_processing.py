@@ -168,9 +168,10 @@ def main():
     for result in sorted_results[:10]:
         print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
 
-    print("\nLas 10 peores 📉:")
-    for result in sorted_results[-10:]:
-        print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
+    if number_of_sheets >= 20:
+      print("\nLas 10 peores 📉:")
+      for result in sorted_results[-10:]:
+          print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
 
 if __name__ == "__main__":
     main()
