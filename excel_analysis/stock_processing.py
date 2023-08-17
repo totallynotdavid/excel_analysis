@@ -57,7 +57,7 @@ def handle_non_numeric_values(df, columns_to_check):
         if not non_numeric.empty:
             logging.warning(f"Valores no numéricos encontrados en la columna '{column}'.")
             for _, row in non_numeric.iterrows():
-                logging.info(f"Fila: {index}, Valor: {row[column]}")
+                logging.info(f"Fila: {row.name}, Valor: {row[column]}")
             logging.info(f"No te preocupes, los valores no numéricos serán convertidos a NaN.")
         # Convertir los valores no numéricos a NaN usando coerce
         df[column] = pd.to_numeric(df[column], errors='coerce')
@@ -83,9 +83,7 @@ def dividir_datos_entrenamiento_prueba(df):
     X = df[feature_cols].values
     Y = df['DETALLE'].values.astype('float')
 
-    X_train, X_test, Y_train, Y_test = model_selection.train_test_split(X, Y, test_size=0.2, random_state=42)
-
-    return X_train, Y_train, X_test, Y_test
+    return model_selection.train_test_split(X, Y, test_size=0.2, random_state=42)
 
 def entrenar_regresor_mlp(X_train, Y_train):
     """
@@ -121,7 +119,7 @@ def process_stock_data(df, sheet_name, results_list):
     df.loc[:, 'DETALLE'] = df['DETALLE'].astype('float')
     ensure_float64(df)
 
-    X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)
+    X_train, X_test, Y_train, Y_test = dividir_datos_entrenamiento_prueba(df)
 
     # Modelo de red neuronal
     modelo_red_neuronal = entrenar_regresor_mlp(X_train, Y_train)
@@ -132,9 +130,8 @@ def process_stock_data(df, sheet_name, results_list):
 
     # Sumar todos los valores de Y_test
     conteo_positivos_reales  = np.sum(Y_test)
-    df_predicciones = pd.DataFrame({'Predicted': y_pred})
-    df_predicciones['threshold_comparison'] = (df_predicciones['Predicted'] > optimal_threshold).astype(int)
-    conteo_positivos_predichos = df_predicciones['threshold_comparison'].sum()
+    predicciones = (y_pred > optimal_threshold).astype(int)
+    conteo_positivos_predichos = np.sum(predicciones)
 
     final_value = conteo_positivos_reales - conteo_positivos_predichos
     results_list.append(SheetResult(sheet_name, final_value))
@@ -142,11 +139,7 @@ def process_stock_data(df, sheet_name, results_list):
 
 def main():
     args = parse_args()
-
-    if args.debug:
-        logging.getLogger().setLevel(logging.INFO)
-    else:
-        logging.getLogger().setLevel(logging.ERROR)
+    logging.getLogger().setLevel(logging.DEBUG if args.debug else logging.ERROR)
 
     test_mode = os.environ.get('TEST_MODE', 'False') == 'True'
     all_data = load_data(single_sheet=False)
