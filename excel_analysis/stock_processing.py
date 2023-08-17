@@ -56,7 +56,7 @@ def handle_non_numeric_values(df, columns_to_check):
         non_numeric = df[pd.to_numeric(df[column], errors='coerce').isna()]
         if not non_numeric.empty:
             logging.warning(f"Valores no numéricos encontrados en la columna '{column}'.")
-            for index, row in non_numeric.iterrows():
+            for _, row in non_numeric.iterrows():
                 logging.info(f"Fila: {index}, Valor: {row[column]}")
             logging.info(f"No te preocupes, los valores no numéricos serán convertidos a NaN.")
         # Convertir los valores no numéricos a NaN usando coerce
@@ -68,19 +68,10 @@ def handle_non_numeric_values(df, columns_to_check):
     df['PX_VOLUME'] = df['PX_VOLUME'].astype('float64')
 
 # Procesamiento
-def normalize_column(df, column_name):
-    """
-    Normalizar datos en una columna específica del dataframe
-    """
-    df[column_name] = (df[column_name] - df[column_name].min()) / (df[column_name].max() - df[column_name].min())
-
 def normalize_data(df):
-    """
-    Normalizar datos en columnas específicas del dataframe
-    """
     columns_to_normalize = [COLUMN_NAMES["price"]] + COLUMN_NAMES["features"]
     for column in columns_to_normalize:
-        normalize_column(df, column)
+        df[column] = (df[column] - df[column].min()) / (df[column].max() - df[column].min())
 
 def dividir_datos_entrenamiento_prueba(df):
     """
