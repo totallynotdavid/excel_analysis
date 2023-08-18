@@ -13,7 +13,7 @@ import logging
 from sklearn import svm, metrics, model_selection
 from sklearn.neural_network import MLPRegressor
 
-from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
+from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, INDEX_COLUMN, SheetResult
 from excel_analysis.helpers import check_data_size, check_data_shape, check_null_values, check_top_5_price_counts, get_column_names, get_head
 
 # Sistema de logging
@@ -32,7 +32,7 @@ def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = F
     Cargar los datos de un archivo Excel con múltiples hojas
     """
     try:
-        data = pd.read_excel(file_name, sheet_name=None, engine='openpyxl', index_col='FECHA')
+        data = pd.read_excel(file_name, sheet_name=None, engine='openpyxl', index_col=INDEX_COLUMN)
 
         if not data:
             logging.error(f"El archivo '{file_name}' está vacío o no contiene datos validos.")
@@ -127,8 +127,8 @@ def process_stock_data(df, sheet_name, results_list):
     handle_non_numeric_values(df, columns_to_check)
 
     normalize_data(df)
-    df = df[pd.to_numeric(df['DETALLE'], errors='coerce').notnull()]
-    df.loc[:, 'DETALLE'] = df['DETALLE'].astype('float')
+    df = df[pd.to_numeric(df[COLUMN_NAMES["detail"]], errors='coerce').notnull()]
+    df.loc[:, COLUMN_NAMES["detail"]] = df[COLUMN_NAMES["detail"]].astype('float')
     ensure_float64(df)
 
     X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)

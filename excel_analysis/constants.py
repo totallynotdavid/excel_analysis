@@ -6,4 +6,6 @@ COLUMN_NAMES = {
     "features": ['PX_MID', 'PX_LOW', 'PX_HIGH', 'PX_OPEN', 'RSI_14D', 'RSI_30D', 'RSI_9D', 'RSI_3D'],
     "detail": 'DETALLE',
 }
+INDEX_COLUMN = 'FECHA'
+DEFAULT_DTYPE = 'float64'
 SheetResult = namedtuple("SheetResult", ["sheet_name", "final_value"])
