@@ -33,16 +33,22 @@ def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = F
     """
     try:
         data = pd.read_excel(file_name, sheet_name=None, engine='openpyxl', index_col='FECHA')
+
+        if not data:
+            logging.error(f"El archivo '{file_name}' está vacío o no contiene datos validos.")
+            return None
+        
+        first_sheet_key = list(data.keys())[0]
+        if single_sheet:
+            return {first_sheet_key: data[first_sheet_key]}
+        return data
+
     except FileNotFoundError:
         logging.error(f"El archivo '{file_name}' no fue encontrado. Por favor comprueba la ubicación (path) y el nombre del archivo.")
         return None
     except Exception as e:
         logging.error(f"No se puede abrir el archivo '{file_name}'. Error: {str(e)}")
         return None
-
-    if single_sheet:
-        return {list(data.keys())[0]: data[list(data.keys())[0]]}
-    return data
 
 def ensure_float64(df):
     """
@@ -78,12 +84,18 @@ def dividir_datos_entrenamiento_prueba(df):
     Dividir el dataframe en training y test data
     """
 
+    train_size = int(0.8 * len(df))
+    datos_entrenamiento = df.iloc[:train_size]
+    datos_prueba = df.iloc[train_size:]
+
     feature_cols = COLUMN_NAMES["features"]
+    X_train = datos_entrenamiento[feature_cols].values
+    Y_train = datos_entrenamiento['DETALLE'].values.astype('float')
 
-    X = df[feature_cols].values
-    Y = df['DETALLE'].values.astype('float')
-
-    return model_selection.train_test_split(X, Y, test_size=0.2, random_state=42)
+    X_test = datos_prueba[feature_cols].values
+    Y_test = datos_prueba['DETALLE'].values.astype('float')
+    
+    return X_train, Y_train, X_test, Y_test
 
 def entrenar_regresor_mlp(X_train, Y_train):
     """
@@ -119,7 +131,7 @@ def process_stock_data(df, sheet_name, results_list):
     df.loc[:, 'DETALLE'] = df['DETALLE'].astype('float')
     ensure_float64(df)
 
-    X_train, X_test, Y_train, Y_test = dividir_datos_entrenamiento_prueba(df)
+    X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)
 
     # Modelo de red neuronal
     modelo_red_neuronal = entrenar_regresor_mlp(X_train, Y_train)
