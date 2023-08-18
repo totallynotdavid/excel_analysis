@@ -59,17 +59,20 @@ def ensure_float64(df):
 
 def handle_non_numeric_values(df, columns_to_check):
     for column in columns_to_check:
-        non_numeric = df[pd.to_numeric(df[column], errors='coerce').isna()]
-        if not non_numeric.empty:
+        is_non_numeric = pd.to_numeric(df[column], errors='coerce').isna()
+
+        if is_non_numeric.sum() > 0:
             logging.warning(f"Valores no numéricos encontrados en la columna '{column}'.")
-            for _, row in non_numeric.iterrows():
-                logging.info(f"Fila: {row.name}, Valor: {row[column]}")
+            non_numeric_rows = df[is_non_numeric][column]
+            for idx, value in non_numeric_rows.items():
+                logging.info(f"Fila: {idx}, Valor: {value}")
             logging.info(f"No te preocupes, los valores no numéricos serán convertidos a NaN.")
+
         # Convertir los valores no numéricos a NaN usando coerce
         df[column] = pd.to_numeric(df[column], errors='coerce')
         df[column] = df[column].astype('float64')
+
     # Reemplazar los NaN con el valor anterior
-    # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.fillna.html
     df.fillna(method='ffill', inplace=True)
     df['PX_VOLUME'] = df['PX_VOLUME'].astype('float64')
 
