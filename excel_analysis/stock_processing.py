@@ -93,11 +93,11 @@ def dividir_datos_entrenamiento_prueba(df):
 
     feature_cols = COLUMN_NAMES["features"]
     X_train = datos_entrenamiento[feature_cols].values
-    Y_train = datos_entrenamiento['DETALLE'].values.astype('float')
+    Y_train = datos_entrenamiento[COLUMN_NAMES["detail"]].values.astype('float')
 
     X_test = datos_prueba[feature_cols].values
-    Y_test = datos_prueba['DETALLE'].values.astype('float')
-    
+    Y_test = datos_prueba[COLUMN_NAMES["detail"]].values.astype('float')
+
     return X_train, Y_train, X_test, Y_test
 
 def entrenar_regresor_mlp(X_train, Y_train):
