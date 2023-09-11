@@ -5,27 +5,33 @@ Fecha: 05/08/2023
 Este paquete se utiliza para comprobar si cierta acción va a subir o bajar usando machine learning.
 """
 
+# Importar librerías estándar
 import os
-import pandas as pd
-import numpy as np
 import argparse
 import logging
+
+# Importar librerías de terceros
+import pandas as pd
+import numpy as np
 from sklearn import svm, metrics, model_selection
 from sklearn.neural_network import MLPRegressor
 
+# Importar funciones locales
 from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, INDEX_COLUMN, SheetResult
-from excel_analysis.helpers import check_data_size, check_data_shape, check_null_values, check_top_5_price_counts, get_column_names, get_head
+from excel_analysis.helpers import (check_data_size, check_data_shape, check_null_values, check_top_5_price_counts,
+                                    get_column_names, get_head)
 
-# Sistema de logging
+# Configuración del logging
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
-# Argumentos
+# Parser de argumentos
 def parse_args():
     parser = argparse.ArgumentParser(description="Ejecuta el programa de análisis de acciones")
     parser.add_argument("--debug", help="Mostrar más detalles del proceso",
                         type=lambda x: (str(x).lower() == 'true'))
     return parser.parse_args()
 
+# Cargar datos y preprocesamiento
 def get_valid_sheets(file_name):
     """
     Obtener una lista de hojas válidas que contengan la columna INDEX_COLUMN
@@ -44,7 +50,6 @@ def get_valid_sheets(file_name):
         logging.error(f"No se puede leer las cabeceras del archivo '{file_name}'. Error: {str(e)}")
         return []
 
-# Preprocesamiento
 def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = False para modo de producción
     """
     Cargar los datos de un archivo Excel con múltiples hojas
@@ -184,6 +189,7 @@ def process_stock_data(df, sheet_name, results_list):
     results_list.append(SheetResult(sheet_name, final_value))
     logging.info(f"💰 Valor final de esta hoja: {final_value}")
 
+# Programa principal
 def main():
     args = parse_args()
     logging.getLogger().setLevel(logging.DEBUG if args.debug else logging.ERROR)
