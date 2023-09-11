@@ -37,7 +37,7 @@ def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = F
         if not data:
             logging.error(f"El archivo '{file_name}' está vacío o no contiene datos validos.")
             return None
-        
+
         first_sheet_key = list(data.keys())[0]
         if single_sheet:
             return {first_sheet_key: data[first_sheet_key]}
@@ -74,6 +74,7 @@ def handle_non_numeric_values(df, columns_to_check):
 
     # Reemplazar los NaN con el valor anterior
     df.fillna(method='ffill', inplace=True)
+    df.fillna(method='bfill', inplace=True)
     df['PX_VOLUME'] = df['PX_VOLUME'].astype('float64')
 
 # Procesamiento
@@ -119,8 +120,16 @@ def process_stock_data(df, sheet_name, results_list):
     # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
     expected_columns = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
     if not all(column in df.columns for column in expected_columns):
-        logging.error(f"La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
-        logging.info(f"--------------------------------")
+        logging.error(f"🚨 La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
+        return
+
+    df.dropna(subset=expected_columns, inplace=True)
+    if df.empty:
+        logging.error(f"🚨 La hoja '{sheet_name}' contiene las columnas necesarias pero no tiene datos. Ignorando esta hoja.")
+        return
+    
+    if df.isnull().any().any():
+        logging.warning(f"🚨 La hoja '{sheet_name}' tiene datos inconsistentes.")
         return
 
     logging.info(f"Trabajando en el stock: {sheet_name}")
