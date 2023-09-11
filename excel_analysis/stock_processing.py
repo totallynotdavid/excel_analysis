@@ -26,12 +26,35 @@ def parse_args():
                         type=lambda x: (str(x).lower() == 'true'))
     return parser.parse_args()
 
+def get_valid_sheets(file_name):
+    """
+    Obtener una lista de hojas válidas que contengan la columna INDEX_COLUMN
+    """
+    try:
+        headers = pd.read_excel(file_name, sheet_name=None, engine='openpyxl', nrows=0)
+        valid_sheets = [sheet for sheet, df in headers.items() if INDEX_COLUMN in df.columns]
+        
+        if not valid_sheets:
+            logging.error(f"El archivo '{file_name}' no tiene hojas válidas con la columna '{INDEX_COLUMN}'.")
+            return []
+
+        return valid_sheets
+
+    except Exception as e:
+        logging.error(f"No se puede leer las cabeceras del archivo '{file_name}'. Error: {str(e)}")
+        return []
+
 # Preprocesamiento
 def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = False para modo de producción
     """
     Cargar los datos de un archivo Excel con múltiples hojas
     """
     try:
+        valid_sheets = get_valid_sheets(file_name)
+
+        if not valid_sheets:
+            return None
+
         data = pd.read_excel(file_name, sheet_name=None, engine='openpyxl', index_col=INDEX_COLUMN)
 
         if not data:
@@ -120,16 +143,16 @@ def process_stock_data(df, sheet_name, results_list):
     # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
     expected_columns = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
     if not all(column in df.columns for column in expected_columns):
-        logging.error(f"🚨 La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
+        logging.error(f"La hoja '{sheet_name}' no contiene todas las columnas esperadas. Ignorando esta hoja.")
         return
 
     df.dropna(subset=expected_columns, inplace=True)
     if df.empty:
-        logging.error(f"🚨 La hoja '{sheet_name}' contiene las columnas necesarias pero no tiene datos. Ignorando esta hoja.")
+        logging.error(f"La hoja '{sheet_name}' contiene las columnas necesarias pero no tiene datos. Ignorando esta hoja.")
         return
     
     if df.isnull().any().any():
-        logging.warning(f"🚨 La hoja '{sheet_name}' tiene datos inconsistentes.")
+        logging.warning(f"La hoja '{sheet_name}' tiene datos inconsistentes.")
         return
 
     logging.info(f"Trabajando en el stock: {sheet_name}")
@@ -159,7 +182,7 @@ def process_stock_data(df, sheet_name, results_list):
 
     final_value = conteo_positivos_reales - conteo_positivos_predichos
     results_list.append(SheetResult(sheet_name, final_value))
-    logging.info(f"💰 Valor de final de esta hoja: {final_value}")
+    logging.info(f"💰 Valor final de esta hoja: {final_value}")
 
 def main():
     args = parse_args()
