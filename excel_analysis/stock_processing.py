@@ -17,7 +17,7 @@ from sklearn import svm, metrics, model_selection
 from sklearn.neural_network import MLPRegressor
 
 # Importar funciones locales
-from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, INDEX_COLUMN, SheetResult
+from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, INDEX_COLUMN, TRAIN_TEST_SPLIT_RATIO, SheetResult
 from excel_analysis.helpers import (check_data_size, check_data_shape, check_null_values, check_top_5_price_counts,
                                     get_column_names, get_head)
 
@@ -116,7 +116,7 @@ def dividir_datos_entrenamiento_prueba(df):
     Dividir el dataframe en training y test data
     """
 
-    train_size = int(0.8 * len(df))
+    train_size = int(TRAIN_TEST_SPLIT_RATIO * len(df))
     datos_entrenamiento = df.iloc[:train_size]
     datos_prueba = df.iloc[train_size:]
 
@@ -173,6 +173,10 @@ def process_stock_data(df, sheet_name, results_list):
 
     X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)
 
+    if len(X_train) == 0 or len(Y_train) == 0:
+        logging.warning(f"La hoja '{sheet_name}' no tiene suficientes datos para entrenar el modelo. Ignorando esta hoja.")
+        return
+
     # Modelo de red neuronal
     modelo_red_neuronal = entrenar_regresor_mlp(X_train, Y_train)
     y_pred = modelo_red_neuronal.predict(X_test)
@@ -227,4 +231,7 @@ def main():
           print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        logging.error(f"Sucedió un error: {str(e)}")

@@ -7,5 +7,5 @@ COLUMN_NAMES = {
     "detail": 'DETALLE',
 }
 INDEX_COLUMN = 'FECHA'
-DEFAULT_DTYPE = 'float64'
+TRAIN_TEST_SPLIT_RATIO = 0.8
 SheetResult = namedtuple("SheetResult", ["sheet_name", "final_value"])
