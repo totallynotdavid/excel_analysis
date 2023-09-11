@@ -50,7 +50,7 @@ def get_valid_sheets(file_name):
         logging.error(f"No se puede leer las cabeceras del archivo '{file_name}'. Error: {str(e)}")
         return []
 
-def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = False para modo de producción
+def load_data(file_name=EXCEL_FILE_NAME, sheets_to_load=None, single_sheet=False): # single_sheet = False para modo de producción
     """
     Cargar los datos de un archivo Excel con múltiples hojas
     """
@@ -60,7 +60,10 @@ def load_data(file_name=EXCEL_FILE_NAME, single_sheet=False): # single_sheet = F
         if not valid_sheets:
             return None
 
-        data = pd.read_excel(file_name, sheet_name=None, engine='openpyxl', index_col=INDEX_COLUMN)
+        if sheets_to_load:
+            valid_sheets = [sheet for sheet in valid_sheets if sheet in sheets_to_load]
+
+        data = pd.read_excel(file_name, sheet_name=valid_sheets, engine='openpyxl', index_col=INDEX_COLUMN)
 
         if not data:
             logging.error(f"El archivo '{file_name}' está vacío o no contiene datos validos.")
@@ -199,7 +202,15 @@ def main():
     logging.getLogger().setLevel(logging.DEBUG if args.debug else logging.ERROR)
 
     test_mode = os.environ.get('TEST_MODE', 'False') == 'True'
-    all_data = load_data(single_sheet=False)
+    
+    valid_sheets = get_valid_sheets(EXCEL_FILE_NAME)
+    if not valid_sheets:
+        logging.error("No valid sheets found.")
+        return
+
+    logging.info(f"📂 Encontramos {len(valid_sheets)} hojas válidas en el archivo Excel\n")
+
+    all_data = load_data(sheets_to_load=valid_sheets, single_sheet=False)
 
     if all_data is None:
         return
@@ -209,14 +220,14 @@ def main():
     if test_mode:
         # Una sola hoja para modo de prueba
         logging.info("Ejecutando en modo de prueba")
-        df = all_data[list(all_data.keys())[0]]
-        process_stock_data(df, "Test Sheet", results_list)
+        if valid_sheets and valid_sheets[0] in all_data:
+            df = all_data[valid_sheets[0]]
+            process_stock_data(df, "Test Sheet", results_list)
     else:
         # Múltiples hojas para modo de producción
-        number_of_sheets = len(all_data)
-        logging.info(f"📂 Encontramos {number_of_sheets} hojas en el archivo Excel\n")
-        for sheet_name, df in all_data.items():
-            process_stock_data(df, sheet_name, results_list)
+        for sheet_name in valid_sheets:
+            if sheet_name in all_data:
+                process_stock_data(all_data[sheet_name], sheet_name, results_list)
 
     # Ordenando los resultados
     sorted_results = sorted(results_list, key=lambda x: x.final_value, reverse=True)
@@ -225,7 +236,7 @@ def main():
     for result in sorted_results[:10]:
         print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
 
-    if number_of_sheets >= 20:
+    if len(valid_sheets) >= 20:
       print("\nLas 10 peores 📉:")
       for result in sorted_results[-10:]:
           print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
