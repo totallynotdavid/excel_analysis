@@ -81,12 +81,12 @@ def load_data(file_name=EXCEL_FILE_NAME, sheets_to_load=None, single_sheet=False
         logging.error(f"No se puede abrir el archivo '{file_name}'. Error: {str(e)}")
         return None
 
-def ensure_float64(df):
+def ensure_float64(df, columns_to_check):
     """
     Prueba de que todas las columnas son de tipo float64
     """
-    if not all(df.dtypes == 'float64'):
-        raise ValueError("Todas las columnas deben ser de tipo float64")
+    if not all(df[columns_to_check].dtypes == 'float64'):
+        raise ValueError(f"Las columnas {columns_to_check} deben ser de tipo float64")
 
 def handle_non_numeric_values(df, columns_to_check):
     for column in columns_to_check:
@@ -101,12 +101,12 @@ def handle_non_numeric_values(df, columns_to_check):
 
         # Convertir los valores no numéricos a NaN usando coerce
         df[column] = pd.to_numeric(df[column], errors='coerce')
-        df[column] = df[column].astype('float64')
+        if df[column].dtype != 'float64':
+            df[column] = df[column].astype('float64')
 
     # Reemplazar los NaN con el valor anterior
     df.fillna(method='ffill', inplace=True)
     df.fillna(method='bfill', inplace=True)
-    df['PX_VOLUME'] = df['PX_VOLUME'].astype('float64')
 
 # Procesamiento
 def normalize_data(df):
@@ -172,7 +172,7 @@ def process_stock_data(df, sheet_name, results_list):
     normalize_data(df)
     df = df[pd.to_numeric(df[COLUMN_NAMES["detail"]], errors='coerce').notnull()]
     df.loc[:, COLUMN_NAMES["detail"]] = df[COLUMN_NAMES["detail"]].astype('float')
-    ensure_float64(df)
+    ensure_float64(df, columns_to_check)
 
     X_train, Y_train, X_test, Y_test = dividir_datos_entrenamiento_prueba(df)
 
