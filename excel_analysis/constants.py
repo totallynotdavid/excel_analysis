@@ -6,6 +6,6 @@ COLUMN_NAMES = {
     "features": ['Inflacion_Mensual', 'PMI_MANUFACTURERO', 'PMI_COMPOSITE', 'ISM_MANUFACTURERO', 'INFLACION', 'TASA_INTERES', 'IPC_SINALIMENTOS_ENERGIA', 'PRODUCCIÓN_INDUSTRIAL'],
     "detail": 'DETALLE',
 }
-INDEX_COLUMN = 'Dates'
+INDEX_COLUMN = 'FECHA'
 TRAIN_TEST_SPLIT_RATIO = 0.8
 SheetResult = namedtuple("SheetResult", ["sheet_name", "final_value"])
