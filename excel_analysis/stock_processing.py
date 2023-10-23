@@ -213,19 +213,27 @@ def assign_stock_grade(stock_data, y_pred, Y_test):
     
     # Calcular volatilidad (desviación estándar de los rendimientos de la acción)
     retornos_diarios = stock_data[COLUMN_NAMES["price"]].pct_change().dropna()
+
+    retornos_diarios = retornos_diarios.replace([np.inf, -np.inf], np.nan)
+
+    retornos_diarios.interpolate(inplace=True)
+    retornos_diarios.fillna(method='ffill', inplace=True)
+    retornos_diarios.fillna(method='bfill', inplace=True)
+
     volatilidad = retornos_diarios.std()
 
-    calificacion = 'C'
-
-    if error_prediccion < 0.05 and volatilidad < 0.02:
+    if error_prediccion < 0.4 and volatilidad < 0.6:
         calificacion = 'A'
-    elif error_prediccion < 0.1 and volatilidad < 0.03:
+    elif error_prediccion < 0.5 and volatilidad < 0.8:
         calificacion = 'B'
-    elif error_prediccion > 0.15 or volatilidad > 0.05:
+    elif error_prediccion < 0.6 or volatilidad < 1.0:
+        calificacion = 'C'
+    elif error_prediccion > 0.7 or volatilidad > 1.2:
         calificacion = 'D'
-    elif error_prediccion > 0.2 or volatilidad > 0.07:
+    else:
         calificacion = 'E'
 
+    print(f"Error de predicción: {error_prediccion}, Volatilidad: {volatilidad}, Calificación: {calificacion}")
     return calificacion
 
 # Programa principal
