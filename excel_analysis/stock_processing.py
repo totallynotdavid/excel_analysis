@@ -184,6 +184,9 @@ def process_stock_data(df, sheet_name, results_list):
     modelo_red_neuronal = entrenar_regresor_mlp(X_train, Y_train)
     y_pred = modelo_red_neuronal.predict(X_test)
 
+    # Asignar una calificación a la acción
+    stock_grade = assign_stock_grade(df, y_pred, Y_test)
+
     # Obtener el umbral (threshold) óptimo
     optimal_threshold = get_optimal_threshold(Y_test, y_pred)
 
@@ -193,8 +196,37 @@ def process_stock_data(df, sheet_name, results_list):
     conteo_positivos_predichos = np.sum(predicciones)
 
     final_value = conteo_positivos_reales - conteo_positivos_predichos
-    results_list.append(SheetResult(sheet_name, final_value))
-    logging.info(f"💰 Valor final de esta hoja: {final_value}")
+    results_list.append(SheetResult(sheet_name, final_value, stock_grade))
+    logging.info(f"💰 Valor final de esta hoja: {final_value}, Grado: {stock_grade}")
+
+def assign_stock_grade(stock_data, y_pred, Y_test):
+    """
+    Asigna una calificación a la acción basada en la precisión del modelo y la volatilidad de la acción.
+
+    :param datos_accion: DataFrame que contiene datos de la acción.
+    :param y_pred: Valores predichos del modelo.
+    :param Y_test: Valores reales de prueba.
+    :return: Una calificación de ['A', 'B', 'C', 'D', 'E']
+    """
+    # Calcular la diferencia entre los valores predichos y reales
+    error_prediccion = np.mean(np.abs(y_pred - Y_test))
+    
+    # Calcular volatilidad (desviación estándar de los rendimientos de la acción)
+    retornos_diarios = stock_data[COLUMN_NAMES["price"]].pct_change().dropna()
+    volatilidad = retornos_diarios.std()
+
+    calificacion = 'C'
+
+    if error_prediccion < 0.05 and volatilidad < 0.02:
+        calificacion = 'A'
+    elif error_prediccion < 0.1 and volatilidad < 0.03:
+        calificacion = 'B'
+    elif error_prediccion > 0.15 or volatilidad > 0.05:
+        calificacion = 'D'
+    elif error_prediccion > 0.2 or volatilidad > 0.07:
+        calificacion = 'E'
+
+    return calificacion
 
 # Programa principal
 def main():
@@ -234,12 +266,12 @@ def main():
 
     print("Las 10 mejores 📈:")
     for result in sorted_results[:10]:
-        print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
+        print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}, Grado: {result.grade}")
 
     if len(valid_sheets) >= 20:
       print("\nLas 10 peores 📉:")
       for result in sorted_results[-10:]:
-          print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}")
+          print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}, Grado: {result.grade}")
 
 if __name__ == "__main__":
     try:
