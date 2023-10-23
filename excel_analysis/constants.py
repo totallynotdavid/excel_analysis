@@ -8,4 +8,4 @@ COLUMN_NAMES = {
 }
 INDEX_COLUMN = 'FECHA'
 TRAIN_TEST_SPLIT_RATIO = 0.8
-SheetResult = namedtuple("SheetResult", ["sheet_name", "final_value", "grade"])
+SheetResult = namedtuple("SheetResult", ["sheet_name", "final_value", "grade", "optimal_threshold"])

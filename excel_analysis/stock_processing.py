@@ -158,7 +158,7 @@ def process_stock_data(df, sheet_name, results_list):
     if df.empty:
         logging.error(f"La hoja '{sheet_name}' contiene las columnas necesarias pero no tiene datos. Ignorando esta hoja.")
         return
-    
+
     if df.isnull().any().any():
         logging.warning(f"La hoja '{sheet_name}' tiene datos inconsistentes.")
         return
@@ -196,8 +196,8 @@ def process_stock_data(df, sheet_name, results_list):
     conteo_positivos_predichos = np.sum(predicciones)
 
     final_value = conteo_positivos_reales - conteo_positivos_predichos
-    results_list.append(SheetResult(sheet_name, final_value, stock_grade))
-    logging.info(f"💰 Valor final de esta hoja: {final_value}, Grado: {stock_grade}")
+    results_list.append(SheetResult(sheet_name, final_value, stock_grade, optimal_threshold))
+    logging.info(f"💰 Valor final de esta hoja: {final_value}, Threshold: {optimal_threshold}, Grado: {stock_grade}")
 
 def assign_stock_grade(stock_data, y_pred, Y_test):
     """
