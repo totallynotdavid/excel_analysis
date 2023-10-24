@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 EXCEL_FILE_NAME = 'Prueba3.xlsx'
+JSON_FILE_NAME = 'stock_results.json'
 INDEX_COLUMN = 'FECHA'
 TRAIN_TEST_SPLIT_RATIO = 0.8
 

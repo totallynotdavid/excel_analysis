@@ -1,7 +1,13 @@
+# Archivos
 poetry.lock
-*.log
 ORIGINAL.ipynb
-*.xlsx
+
+# Directorios
 .pytest_cache/
 **/__pycache__/
 .ipynb_checkpoints/
+
+# Tipos de archivos
+*.xlsx
+*.json
+*.log

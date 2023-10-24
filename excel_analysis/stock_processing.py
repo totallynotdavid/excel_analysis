@@ -19,6 +19,7 @@ from excel_analysis.utils.grading_system import assign_stock_grade, assign_perfo
 from excel_analysis.utils.display_results import mostrar_top_stocks, mostrar_distribucion_puntaje
 from excel_analysis.utils.data_validation import validar_dataframe
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
+from excel_analysis.store_data import store_results_to_json
 
 # Configuración del logging
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -102,6 +103,10 @@ def main():
 
     # Ordenando los resultados
     resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
+
+    # Guardar los resultados en un archivo JSON
+    store_results_to_json(resultados_ordenados)
+    print(f"Resultados guardados en el archivo stock_results.json")
 
     mensaje_distribucion_puntaje = mostrar_distribucion_puntaje(results)
     logging.info(mensaje_distribucion_puntaje)
