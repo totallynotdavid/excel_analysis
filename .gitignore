@@ -3,6 +3,5 @@ poetry.lock
 ORIGINAL.ipynb
 *.xlsx
 .pytest_cache/
-excel_analysis/__pycache__/
-tests/__pycache__/
+**/__pycache__/
 .ipynb_checkpoints/
