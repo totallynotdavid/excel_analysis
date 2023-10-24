@@ -16,7 +16,7 @@ from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
 from excel_analysis.utils.data_loaders import get_valid_sheets, load_data
 from excel_analysis.models.neural_networks import get_optimal_threshold
 from excel_analysis.utils.grading_system import assign_stock_grade, assign_performance_grade
-from excel_analysis.utils.display_results import display_top_stocks, display_grade_distribution
+from excel_analysis.utils.display_results import mostrar_top_stocks, mostrar_distribucion_puntaje
 from excel_analysis.utils.data_validation import validar_dataframe
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
 
@@ -93,7 +93,7 @@ def main():
         if sheet_name in all_data:
             process_stock_data(all_data[sheet_name], sheet_name, results)
 
-    # Calculate performance grades for all stocks
+    # Calcular el rendimiento esperado de cada acción
     predicted_returns = [result.predicted_return for result in results]
     performance_grades = assign_performance_grade(predicted_returns)
     for index, result in enumerate(results):
@@ -101,10 +101,13 @@ def main():
         results[index] = updated_result
 
     # Ordenando los resultados
-    sorted_results = sorted(results, key=lambda x: x.final_value, reverse=True)
+    resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
 
-    display_top_stocks(sorted_results, valid_sheets)
-    display_grade_distribution(results)
+    mensaje_distribucion_puntaje = mostrar_distribucion_puntaje(results)
+    logging.info(mensaje_distribucion_puntaje)
+
+    mensaje_top_stocks = mostrar_top_stocks(resultados_ordenados, valid_sheets)
+    logging.info(mensaje_top_stocks)
 
 if __name__ == "__main__":
     try:
