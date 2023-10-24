@@ -5,13 +5,13 @@ from excel_analysis.constants import EXCEL_FILE_NAME, INDEX_COLUMN
 
 def get_valid_sheets(file_name):
     """
-    Retrieve valid sheets from the provided Excel file. A sheet is considered valid if it contains the INDEX_COLUMN.
+    Recupera las hojas válidas del archivo Excel proporcionado. Una hoja se considera válida si contiene el INDEX_COLUMN.
 
-    Parameters:
-    - file_name (str): Path to the Excel file.
+    Parámetros:
+    - file_name (str): Ruta al archivo Excel.
 
-    Returns:
-    - list: List of valid sheet names.
+    Retorna:
+    - list: Lista de nombres de hojas válidas. Solo las hojas de esta lista serán analizadas.
     """
     try:
         headers = pd.read_excel(file_name, sheet_name=None, engine='openpyxl', nrows=0)
@@ -29,15 +29,15 @@ def get_valid_sheets(file_name):
 
 def load_data(file_name=EXCEL_FILE_NAME, sheets_to_load=None, single_sheet=False):
     """
-    Load data from the provided Excel file.
+    Carga datos del archivo Excel proporcionado.
 
-    Parameters:
-    - file_name (str): Path to the Excel file.
-    - sheets_to_load (list): List of specific sheet names to load.
-    - single_sheet (bool): Whether to load only a single sheet.
+    Parámetros:
+    - file_name (str): Ruta al archivo Excel.
+    - sheets_to_load (list): Lista de nombres de hojas específicas para cargar.
+    - single_sheet (bool): Si se debe cargar solo una hoja.
 
-    Returns:
-    - dict: Dictionary containing data from the Excel sheets.
+    Retorna:
+    - dict: Diccionario que contiene datos de las hojas de Excel.
     """
     try:
         valid_sheets = get_valid_sheets(file_name)

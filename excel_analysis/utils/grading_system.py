@@ -3,28 +3,28 @@ from excel_analysis.constants import COLUMN_NAMES
 
 def compute_predicted_return(model, X_test):
     """
-    Calculate the predicted return based on the model's predictions.
+    Calcula el retorno predicho basado en las predicciones del modelo.
 
-    Parameters:
-    - model: Trained MLPRegressor model.
-    - X_test: Test data.
+    Parámetros:
+    - model: Modelo MLPRegressor entrenado.
+    - X_test: Datos de prueba.
 
-    Returns:
-    - Predicted return value.
+    Retorna:
+    - Valor de retorno predicho.
     """
     return np.sum(model.predict(X_test))
 
 def assign_stock_grade(stock_data, y_pred, Y_test):
     """
-    Assign a stock grade based on prediction error and volatility.
+    Asigna una calificación a la acción basada en el error de predicción y la volatilidad.
 
-    Parameters:
-    - stock_data: Dataframe containing stock data.
-    - y_pred: Model's predictions.
-    - Y_test: Actual values.
+    Parámetros:
+    - stock_data: Dataframe que contiene datos de la acción.
+    - y_pred: Predicciones del modelo.
+    - Y_test: Valores reales.
 
-    Returns:
-    - Grade (A, B, C, D, E).
+    Retorna:
+    - Calificación (A, B, C, D, E).
     """
     # Calcular la diferencia entre los valores predichos y reales
     error_prediccion = np.mean(np.abs(y_pred - Y_test))
@@ -57,13 +57,13 @@ def assign_stock_grade(stock_data, y_pred, Y_test):
 
 def assign_performance_grade(results_list):
     """
-    Assign a performance grade based on predicted future performance.
+    Asigna una calificación de rendimiento basada en el rendimiento futuro predicho.
 
-    Parameters:
-    - results_list: List of SheetResult namedtuples.
+    Parámetros:
+    - results_list: Lista de namedtuples SheetResult.
 
-    Returns:
-    - Updated list of SheetResults with performance grades.
+    Retorna:
+    - Lista actualizada de SheetResults con calificaciones de rendimiento.
     """
     predicted_returns = [(result, compute_predicted_return(result.model, result.X_test)) for result in results_list]
     sorted_by_predicted_return = sorted(predicted_returns, key=lambda x: x[1], reverse=True)  # Sort results by predicted returns

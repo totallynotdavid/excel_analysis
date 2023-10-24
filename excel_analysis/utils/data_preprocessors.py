@@ -4,14 +4,14 @@ from excel_analysis.constants import COLUMN_NAMES
 
 def ensure_float64(df, columns_to_check):
     """
-    Ensure that the specified columns are of type float64.
+    Asegura que las columnas especificadas en el DataFrame sean de tipo float64.
     """
     if not all(df[columns_to_check].dtypes == 'float64'):
         raise ValueError(f"Las columnas {columns_to_check} deben ser de tipo float64")
 
 def handle_non_numeric_values(df, columns_to_check):
     """
-    Convert non-numeric values in the DataFrame to NaN and ensure columns are of type float64.
+    Convertir valores no numéricos en el DataFrame a NaN y asegurarse de que las columnas sean de tipo float64.
     """
     for column in columns_to_check:
         is_non_numeric = pd.to_numeric(df[column], errors='coerce').isna()
@@ -31,7 +31,7 @@ def handle_non_numeric_values(df, columns_to_check):
 
 def normalize_data(df):
     """
-    Normalize the data for specified columns in the DataFrame.
+    Normalizar los datos para las columnas especificadas en el DataFrame.
     """
     columns_to_normalize = [COLUMN_NAMES["price"]] + COLUMN_NAMES["features"]
     for column in columns_to_normalize:
@@ -39,7 +39,7 @@ def normalize_data(df):
 
 def dividir_datos_entrenamiento_prueba(df, train_test_split_ratio):
     """
-    Split the data into training and testing datasets based on the provided ratio.
+    Dividir los datos en conjuntos de entrenamiento y prueba basados en el ratio definido en constants.
     """
     train_size = int(train_test_split_ratio * len(df))
     datos_entrenamiento = df.iloc[:train_size]

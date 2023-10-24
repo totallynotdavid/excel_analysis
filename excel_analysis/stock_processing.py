@@ -1,6 +1,7 @@
 """
 Autor: David Duran
-Fecha: 05/08/2023
+Fecha de creación: 05/08/2023
+Fecha de moficación: 23/10/2023
 
 Este paquete se utiliza para comprobar si cierta acción va a subir o bajar usando machine learning.
 """
@@ -24,7 +25,7 @@ def parse_argumentos():
     """
     Parsea y valida los argumentos proporcionados al script.
 
-    Returns:
+    Retorna:
         argparse.Namespace: Objeto que contiene los argumentos parseados.
     """
     parser = argparse.ArgumentParser(

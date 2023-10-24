@@ -5,14 +5,14 @@ import pandas as pd
 
 def entrenar_regresor_mlp(X_train, Y_train):
     """
-    Train the MLP Regressor model with the given training data.
+    Entrena el modelo MLPRegressor con los datos de entrenamiento proporcionados.
+
+    Parámetros:
+    - X_train (tipo array): Características para el entrenamiento.
+    - Y_train (tipo array): Valores objetivo para el entrenamiento.
     
-    Parameters:
-    - X_train (array-like): Features for training.
-    - Y_train (array-like): Target values for training.
-    
-    Returns:
-    - modelo_red_neuronal (MLPRegressor): Trained model.
+    Retorna:
+    - modelo_red_neuronal (MLPRegressor): Modelo entrenado.
     """
     modelo_red_neuronal = MLPRegressor(activation='logistic', hidden_layer_sizes=(200), max_iter=1000, solver='adam')
     modelo_red_neuronal.fit(X_train, Y_train)
@@ -20,14 +20,14 @@ def entrenar_regresor_mlp(X_train, Y_train):
 
 def get_optimal_threshold(Y_test, y_pred):
     """
-    Compute the optimal threshold for classification based on ROC curve.
+    Calcula el umbral óptimo para la clasificación basado en la curva ROC.
+
+    Parámetros:
+    - Y_test (tipo array): Valores objetivo verdaderos.
+    - y_pred (tipo array): Valores predichos.
     
-    Parameters:
-    - Y_test (array-like): True target values.
-    - y_pred (array-like): Predicted values.
-    
-    Returns:
-    - optimal_threshold (float): Computed optimal threshold value.
+    Retorna:
+    - optimal_threshold (float): Valor del umbral óptimo calculado.
     """
     fpr, tpr, thresholds = metrics.roc_curve(Y_test, y_pred) # fpr = Tasa de falsos positivos que salen positivos, tpr = Tasa de positivos que salen positivos
     i = np.arange(len(tpr))
@@ -37,13 +37,13 @@ def get_optimal_threshold(Y_test, y_pred):
 
 def compute_predicted_return(model, X_test):
     """
-    Compute the sum of predicted returns using the model.
-    
-    Parameters:
-    - model (MLPRegressor): Trained MLP model.
-    - X_test (array-like): Features for prediction.
-    
-    Returns:
-    - predicted_return (float): Total sum of predicted returns.
+    Calcula la suma de los retornos predichos usando el modelo.
+
+    Parámetros:
+    - model (MLPRegressor): Modelo MLP entrenado.
+    - X_test (tipo array): Características para la predicción.
+
+    Retorna:
+    - predicted_return (float): Suma total de retornos predichos.
     """
     return np.sum(model.predict(X_test))
