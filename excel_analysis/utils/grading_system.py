@@ -55,21 +55,37 @@ def assign_stock_grade(stock_data, y_pred, Y_test):
 
     return calificacion
 
-def assign_performance_grade(results_list):
+def assign_performance_grade(predicted_returns):
     """
     Asigna una calificación de rendimiento basada en el rendimiento futuro predicho.
 
     Parámetros:
-    - results_list: Lista de namedtuples SheetResult.
+    - predicted_returns: List of predicted returns for each stock.
 
     Retorna:
-    - Lista actualizada de SheetResults con calificaciones de rendimiento.
+    - grade: Calificación de rendimiento.
     """
-    predicted_returns = [(result, compute_predicted_return(result.model, result.X_test)) for result in results_list]
-    sorted_by_predicted_return = sorted(predicted_returns, key=lambda x: x[1], reverse=True)  # Sort results by predicted returns
-
-    new_results = []
-    for rank, (result, _) in enumerate(sorted_by_predicted_return, 1):
-        new_results.append(result._replace(performance_grade=rank))
     
-    return new_results
+    # Determine the quantiles of the predicted returns
+    q1 = np.quantile(predicted_returns, 0.2)
+    q2 = np.quantile(predicted_returns, 0.4)
+    q3 = np.quantile(predicted_returns, 0.6)
+    q4 = np.quantile(predicted_returns, 0.8)
+
+    grades = []
+
+    # Assign grades based on which quantile a stock's predicted return falls into
+    for predicted_return in predicted_returns:
+        if predicted_return <= q1:
+            grade = 'E'
+        elif predicted_return <= q2:
+            grade = 'D'
+        elif predicted_return <= q3:
+            grade = 'C'
+        elif predicted_return <= q4:
+            grade = 'B'
+        else:
+            grade = 'A'
+        grades.append(grade)
+    
+    return grades
