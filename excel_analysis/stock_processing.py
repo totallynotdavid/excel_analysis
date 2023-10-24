@@ -215,20 +215,23 @@ def assign_stock_grade(stock_data, y_pred, Y_test):
     retornos_diarios = stock_data[COLUMN_NAMES["price"]].pct_change().dropna()
 
     retornos_diarios = retornos_diarios.replace([np.inf, -np.inf], np.nan)
-
     retornos_diarios.interpolate(inplace=True)
     retornos_diarios.fillna(method='ffill', inplace=True)
     retornos_diarios.fillna(method='bfill', inplace=True)
 
     volatilidad = retornos_diarios.std()
 
-    if error_prediccion < 0.4 and volatilidad < 0.6:
+    # Cuantiles de volatilidad
+    cuantiles_error = [0.4, 0.5, 0.6, 0.7]
+    cuantiles_volatilidad = [0.6, 0.8, 1.0, 1.2]
+
+    if error_prediccion <= cuantiles_error[0] and volatilidad <= cuantiles_volatilidad[0]:
         calificacion = 'A'
-    elif error_prediccion < 0.5 and volatilidad < 0.8:
+    elif error_prediccion <= cuantiles_error[1] and volatilidad <= cuantiles_volatilidad[1]:
         calificacion = 'B'
-    elif error_prediccion < 0.6 or volatilidad < 1.0:
+    elif error_prediccion <= cuantiles_error[2] and volatilidad <= cuantiles_volatilidad[2]:
         calificacion = 'C'
-    elif error_prediccion > 0.7 or volatilidad > 1.2:
+    elif error_prediccion <= cuantiles_error[3] and volatilidad <= cuantiles_volatilidad[3]:
         calificacion = 'D'
     else:
         calificacion = 'E'
