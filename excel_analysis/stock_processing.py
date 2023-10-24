@@ -233,7 +233,7 @@ def assign_stock_grade(stock_data, y_pred, Y_test):
     else:
         calificacion = 'E'
 
-    print(f"Error de predicción: {error_prediccion}, Volatilidad: {volatilidad}, Calificación: {calificacion}")
+    logging.info(f"Error de predicción: {error_prediccion}, Volatilidad: {volatilidad}, Calificación: {calificacion}")
     return calificacion
 
 # Programa principal
@@ -272,14 +272,16 @@ def main():
     # Ordenando los resultados
     sorted_results = sorted(results_list, key=lambda x: x.final_value, reverse=True)
 
-    print("Las 10 mejores 📈:")
+    print("📊 Resumen de las acciones:")
+
+    print("\nLas 10 mejores 📈:")
     for result in sorted_results[:10]:
-        print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}, Grado: {result.grade}")
+        print(f"* Hoja: {result.sheet_name} | Valor: {result.final_value} | Grado: {result.grade} | Threshold: {result.optimal_threshold:.3f}")
 
     if len(valid_sheets) >= 20:
-      print("\nLas 10 peores 📉:")
-      for result in sorted_results[-10:]:
-          print(f"* Hoja: {result.sheet_name}, Valor: {result.final_value}, Grado: {result.grade}")
+        print("\nLas 10 peores 📉:")
+        for result in sorted_results[-10:]:
+            print(f"* Hoja: {result.sheet_name} | Valor: {result.final_value} | Grado: {result.grade} | Threshold: {result.optimal_threshold:.3f}")
 
 if __name__ == "__main__":
     try:
