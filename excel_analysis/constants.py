@@ -11,4 +11,4 @@ COLUMN_NAMES = {
     "detail": 'DETALLE',
 }
 
-SheetResult = namedtuple('SheetResult', ['sheet_name', 'final_value', 'grade', 'optimal_threshold', 'predicted_return', 'performance_grade'], defaults=[None])
+SheetResult = namedtuple('SheetResult', ['sheet_name', 'final_value', 'grade', 'optimal_threshold', 'predicted_return', 'performance_grade', 'final_value_grade'], defaults=[None])

@@ -15,7 +15,7 @@ import numpy as np
 from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
 from excel_analysis.utils.data_loaders import get_valid_sheets, load_data
 from excel_analysis.models.neural_networks import get_optimal_threshold
-from excel_analysis.utils.grading_system import assign_stock_grade, assign_performance_grade
+from excel_analysis.utils.grading_system import assign_stock_grade, assign_performance_grade, assign_final_value_grade
 from excel_analysis.utils.display_results import mostrar_top_stocks, mostrar_distribucion_puntaje
 from excel_analysis.utils.data_validation import validar_dataframe
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
@@ -68,7 +68,7 @@ def process_stock_data(df, sheet_name, results_list):
     conteo_positivos_predichos = np.sum((y_pred > optimal_threshold).astype(int))
 
     final_value = conteo_positivos_reales - conteo_positivos_predichos
-    results_list.append(SheetResult(sheet_name, final_value, stock_grade, optimal_threshold, predicted_return))
+    results_list.append(SheetResult(sheet_name, final_value, stock_grade, optimal_threshold, predicted_return, None, None))
     logging.info(f"💰 Valor final de esta hoja: {final_value}, Threshold: {optimal_threshold}, Grado: {stock_grade}")
 
 # Programa principal
@@ -97,9 +97,13 @@ def main():
     # Calcular el rendimiento esperado de cada acción
     predicted_returns = [result.predicted_return for result in results]
     performance_grades = assign_performance_grade(predicted_returns)
+
+    # Asignar una calificación utilizando el valor final de cada acción
+    final_value_grades = assign_final_value_grade([result.final_value for result in results])
+
     for index, result in enumerate(results):
-        updated_result = result._replace(performance_grade=performance_grades[index])
-        results[index] = updated_result
+      updated_result = result._replace(performance_grade=performance_grades[index], final_value_grade=final_value_grades[index])
+      results[index] = updated_result
 
     # Ordenando los resultados
     resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
