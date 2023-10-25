@@ -107,8 +107,8 @@ def main():
     final_value_grades = assign_final_value_grade([result.final_value for result in results])
 
     for index, result in enumerate(results):
-      updated_result = result._replace(performance_grade=performance_grades[index], final_value_grade=final_value_grades[index])
-      results[index] = updated_result
+        updated_result = result._replace(performance_grade=performance_grades[index], final_value_grade=final_value_grades[index])
+        results[index] = updated_result
 
     # Ordenando los resultados
     resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
