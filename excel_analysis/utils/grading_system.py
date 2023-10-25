@@ -31,19 +31,19 @@ def clean_daily_returns(stock_data):
     daily_returns.fillna(method='bfill', inplace=True)
     return daily_returns
 
-def assign_grade_from_quantiles(value, quantiles, grades):
+def assign_grade_from_quantiles(value, cuantiles, grades):
     """
     Asignar una calificación basada en la posición del valor en relación con los cuantiles proporcionados.
 
     Parámetro:
     - value: El valor a evaluar.
-    - quantiles: Lista de cuantiles.
+    - cuantiles: Lista de cuantiles.
     - grades: Lista de calificaciones.
 
     Retorna:
     - Grado asignado.
     """
-    for q, grade in zip(quantiles, grades):
+    for q, grade in zip(cuantiles, grades):
         if value <= q:
             return grade
     return grades[-1]
@@ -91,7 +91,7 @@ def assign_performance_grade(predicted_returns):
     retorna:
     - Lista de calificaciones por rendimiento.
     """
-    quantiles = [
+    cuantiles = [
         np.quantile(predicted_returns, 0.2),
         np.quantile(predicted_returns, 0.4),
         np.quantile(predicted_returns, 0.6),
@@ -99,7 +99,7 @@ def assign_performance_grade(predicted_returns):
     ]
     grades = ['E', 'D', 'C', 'B', 'A']
 
-    return [assign_grade_from_quantiles(pr, quantiles, grades) for pr in predicted_returns]
+    return [assign_grade_from_quantiles(pr, cuantiles, grades) for pr in predicted_returns]
 
 def assign_final_value_grade(final_values):
     """
@@ -111,7 +111,7 @@ def assign_final_value_grade(final_values):
     Retorna:
     - Lista de calificaciones.
     """
-    quantiles = [
+    cuantiles = [
         np.quantile(final_values, 0.2),
         np.quantile(final_values, 0.4),
         np.quantile(final_values, 0.6),
@@ -119,4 +119,4 @@ def assign_final_value_grade(final_values):
     ]
     grades = ['A', 'B', 'C', 'D', 'E']
 
-    return [assign_grade_from_quantiles(fv, quantiles, grades) for fv in final_values]
+    return [assign_grade_from_quantiles(fv, cuantiles, grades) for fv in final_values]

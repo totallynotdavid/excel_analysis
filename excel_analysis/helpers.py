@@ -1,5 +1,3 @@
-import pandas as pd
-
 def check_data_size(df):
     return df.size
 

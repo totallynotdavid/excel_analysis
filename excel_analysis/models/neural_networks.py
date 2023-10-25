@@ -18,7 +18,7 @@ def entrenar_regresor_mlp(X_train, Y_train):
     modelo_red_neuronal.fit(X_train, Y_train)
     return modelo_red_neuronal
 
-def get_optimal_threshold(Y_test, y_pred):
+def obtener_threshold_optimo(Y_test, y_pred):
     """
     Calcula el umbral óptimo para la clasificación basado en la curva ROC.
 

@@ -1,20 +1,19 @@
 """
 Autor: David Duran
 Fecha de creación: 05/08/2023
-Fecha de moficación: 23/10/2023
+Fecha de moficación: 24/10/2023
 
 Este paquete se utiliza para comprobar si cierta acción va a subir o bajar usando machine learning.
 """
 
 import argparse
 import logging
-import pandas as pd
 import numpy as np
 
 # Importar funciones locales
 from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
 from excel_analysis.utils.data_loaders import get_valid_sheets, load_data
-from excel_analysis.models.neural_networks import get_optimal_threshold
+from excel_analysis.models.neural_networks import obtener_threshold_optimo
 from excel_analysis.utils.grading_system import assign_stock_grade, assign_performance_grade, assign_final_value_grade
 from excel_analysis.utils.display_results import mostrar_top_stocks, mostrar_distribucion_puntaje
 from excel_analysis.utils.data_validation import validar_dataframe
@@ -27,9 +26,6 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 def parse_argumentos():
     """
     Parsea y valida los argumentos proporcionados al script.
-
-    Retorna:
-        argparse.Namespace: Objeto que contiene los argumentos parseados.
     """
     parser = argparse.ArgumentParser(
         description="Analiza hojas de cálculo para predecir el comportamiento de las acciones utilizando machine learning."
@@ -43,7 +39,16 @@ def parse_argumentos():
     return parser.parse_args()
 
 def process_stock_data(df, sheet_name, results_list):
-    # Revisar que el dataframe tenga todas las columnas esperadas (price, detail y features)
+    """
+    Procesar los datos de una hoja de cálculo para predecir el comportamiento de una acción.
+    Esta función se encarga de entrenar el modelo, predecir los valores y asignar una calificación a la acción.
+    Llama a las funciones de otros módulos para realizar estas tareas.
+
+    Parámetros:
+    - df: DataFrame que contiene los datos de la acción.
+    - sheet_name: Nombre de la hoja de cálculo.
+    - results_list: Lista donde se almacenan los resultados de cada acción.
+    """
     columnas_requeridas = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
 
     if not validar_dataframe(df, columnas_requeridas):
@@ -63,7 +68,7 @@ def process_stock_data(df, sheet_name, results_list):
     predicted_return = np.sum(y_pred)
 
     # Obtener el umbral (threshold) óptimo
-    optimal_threshold = get_optimal_threshold(Y_test, y_pred)
+    optimal_threshold = obtener_threshold_optimo(Y_test, y_pred)
     conteo_positivos_reales  = np.sum(Y_test)
     conteo_positivos_predichos = np.sum((y_pred > optimal_threshold).astype(int))
 
@@ -116,7 +121,7 @@ def main():
     logging.info(mensaje_distribucion_puntaje)
 
     mensaje_top_stocks = mostrar_top_stocks(resultados_ordenados, valid_sheets)
-    logging.info(mensaje_top_stocks)
+    print(f"{mensaje_top_stocks}")
 
 if __name__ == "__main__":
     try:

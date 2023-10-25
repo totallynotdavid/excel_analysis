@@ -30,10 +30,11 @@ def crear_mensaje_stock(result, prefix="*"):
     - Mensaje de la acción.
     """
     return (f"{prefix} Hoja: {result.sheet_name} | Valor: {result.final_value} | "
-            f"Grado: {result.grade} | Threshold: {result.optimal_threshold:.3f} | "
+            f"Threshold: {result.optimal_threshold:.3f} | "
             f"Retorno Predicho: {result.predicted_return:.3f} | "
-            f"Rendimiento Grado: {result.performance_grade} | "
-            f"Valor Final Grado: {result.final_value_grade}")
+            f"Grado (Vol. & Error): {result.grade} | "
+            f"Grado (Rendimiento): {result.performance_grade} | "
+            f"Grado (Valor Final): {result.final_value_grade}")
 
 def mostrar_top_stocks(resultados_ordenados, valid_sheets):
     """
