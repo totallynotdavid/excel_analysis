@@ -18,18 +18,34 @@ def mostrar_distribucion_puntaje(results):
 
     return mensaje_distribucion_grados
 
+def crear_mensaje_stock(result, prefix="*"):
+    """
+    Crear un mensaje para una acción dada.
+
+    Parámetros:
+    - result: Objeto de resultado de la acción.
+    - prefix: Prefijo para el mensaje.
+
+    Retorna:
+    - Mensaje de la acción.
+    """
+    return (f"{prefix} Hoja: {result.sheet_name} | Valor: {result.final_value} | "
+            f"Grado: {result.grade} | Threshold: {result.optimal_threshold:.3f} | "
+            f"Retorno Predicho: {result.predicted_return:.3f} | "
+            f"Rendimiento Grado: {result.performance_grade} | "
+            f"Valor Final Grado: {result.final_value_grade}")
+
 def mostrar_top_stocks(resultados_ordenados, valid_sheets):
     """
     Mostar los resultados de las acciones en orden de mejor a peor.
     """
+    top_10 = "\n".join(crear_mensaje_stock(result) for result in resultados_ordenados[:10])
+    peores_10 = "\n".join(crear_mensaje_stock(result) for result in resultados_ordenados[-10:])
+
     mensaje_stocks = "Resumen de las acciones:"
-    mensaje_stocks += "\nLas 10 mejores 📈:"
-    for result in resultados_ordenados[:10]:
-        mensaje_stocks += f"\n* Hoja: {result.sheet_name} | Valor: {result.final_value} | Grado: {result.grade} | Threshold: {result.optimal_threshold:.3f} | Retorno Predicho: {result.predicted_return:.3f} | Rendimiento Grado: {result.performance_grade}"
+    mensaje_stocks += "\nLas 10 mejores 📈:\n" + top_10
 
     if len(valid_sheets) >= 20:
-        mensaje_stocks += "\n\nLas 10 peores 📉:"
-        for result in resultados_ordenados[-10:]:
-            mensaje_stocks += f"\n* Hoja: {result.sheet_name} | Valor: {result.final_value} | Grado: {result.grade} | Threshold: {result.optimal_threshold:.3f} | Retorno Predicho: {result.predicted_return:.3f} | Rendimiento Grado: {result.performance_grade}"
+        mensaje_stocks += "\n\nLas 10 peores 📉:\n" + peores_10
 
     return mensaje_stocks
