@@ -1,6 +1,7 @@
 import numpy as np
 from excel_analysis.constants import COLUMN_NAMES
 
+
 def compute_predicted_return(model, X_test):
     """
     Calcular el retorno predicho basado en las predicciones del modelo.
@@ -13,6 +14,7 @@ def compute_predicted_return(model, X_test):
     - Valor de retorno predicho.
     """
     return np.sum(model.predict(X_test))
+
 
 def clean_daily_returns(stock_data):
     """
@@ -27,9 +29,10 @@ def clean_daily_returns(stock_data):
     daily_returns = stock_data[COLUMN_NAMES["price"]].pct_change().dropna()
     daily_returns.replace([np.inf, -np.inf], np.nan, inplace=True)
     daily_returns.interpolate(inplace=True)
-    daily_returns.fillna(method='ffill', inplace=True)
-    daily_returns.fillna(method='bfill', inplace=True)
+    daily_returns.fillna(method="ffill", inplace=True)
+    daily_returns.fillna(method="bfill", inplace=True)
     return daily_returns
+
 
 def assign_grade_from_quantiles(value, cuantiles, grades):
     """
@@ -47,6 +50,7 @@ def assign_grade_from_quantiles(value, cuantiles, grades):
         if value <= q:
             return grade
     return grades[-1]
+
 
 def assign_stock_grade(stock_data, y_pred, Y_test):
     """
@@ -68,18 +72,31 @@ def assign_stock_grade(stock_data, y_pred, Y_test):
 
     # Decision conditions
     conditions = [
-        (prediction_error <= error_quantiles[0] and volatility <= volatility_quantiles[0]),
-        (prediction_error <= error_quantiles[1] and volatility <= volatility_quantiles[1]),
-        (prediction_error <= error_quantiles[2] and volatility <= volatility_quantiles[2]),
-        (prediction_error <= error_quantiles[3] and volatility <= volatility_quantiles[3])
+        (
+            prediction_error <= error_quantiles[0]
+            and volatility <= volatility_quantiles[0]
+        ),
+        (
+            prediction_error <= error_quantiles[1]
+            and volatility <= volatility_quantiles[1]
+        ),
+        (
+            prediction_error <= error_quantiles[2]
+            and volatility <= volatility_quantiles[2]
+        ),
+        (
+            prediction_error <= error_quantiles[3]
+            and volatility <= volatility_quantiles[3]
+        ),
     ]
-    grades = ['A', 'B', 'C', 'D', 'E']
+    grades = ["A", "B", "C", "D", "E"]
 
     for condition, grade in zip(conditions, grades):
         if condition:
             return grade
 
     return grades[-1]
+
 
 def assign_performance_grade(predicted_returns):
     """
@@ -95,11 +112,14 @@ def assign_performance_grade(predicted_returns):
         np.quantile(predicted_returns, 0.2),
         np.quantile(predicted_returns, 0.4),
         np.quantile(predicted_returns, 0.6),
-        np.quantile(predicted_returns, 0.8)
+        np.quantile(predicted_returns, 0.8),
     ]
-    grades = ['E', 'D', 'C', 'B', 'A']
+    grades = ["E", "D", "C", "B", "A"]
 
-    return [assign_grade_from_quantiles(pr, cuantiles, grades) for pr in predicted_returns]
+    return [
+        assign_grade_from_quantiles(pr, cuantiles, grades) for pr in predicted_returns
+    ]
+
 
 def assign_final_value_grade(final_values):
     """
@@ -115,8 +135,8 @@ def assign_final_value_grade(final_values):
         np.quantile(final_values, 0.2),
         np.quantile(final_values, 0.4),
         np.quantile(final_values, 0.6),
-        np.quantile(final_values, 0.8)
+        np.quantile(final_values, 0.8),
     ]
-    grades = ['A', 'B', 'C', 'D', 'E']
+    grades = ["A", "B", "C", "D", "E"]
 
     return [assign_grade_from_quantiles(fv, cuantiles, grades) for fv in final_values]
