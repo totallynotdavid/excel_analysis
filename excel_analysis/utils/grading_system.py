@@ -89,6 +89,7 @@ def assign_stock_grade(stock_data, y_pred, Y_test):
             and volatility <= volatility_quantiles[3]
         ),
     ]
+
     grades = ["A", "B", "C", "D", "E"]
 
     for condition, grade in zip(conditions, grades):

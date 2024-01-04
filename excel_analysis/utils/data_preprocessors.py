@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from excel_analysis.constants import COLUMN_NAMES
 
 

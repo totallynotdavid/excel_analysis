@@ -150,9 +150,9 @@ def main():
     resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
 
     # Guardar los resultados en un archivo JSON
-    # store_results_to_json(resultados_ordenados)
+    store_results_to_json(resultados_ordenados)
     store_results_to_excel(resultados_ordenados)
-    print(f"Resultados guardados en el archivo stock_results.json")
+    print("Resultados guardados en el archivo stock_results.json")
 
     mensaje_distribucion_puntaje = mostrar_distribucion_puntaje(results)
     logging.info(mensaje_distribucion_puntaje)
