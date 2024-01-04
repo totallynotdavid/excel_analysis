@@ -152,7 +152,8 @@ def main():
     # Guardar los resultados en un archivo JSON
     store_results_to_json(resultados_ordenados)
     store_results_to_excel(resultados_ordenados)
-    print("Resultados guardados en el archivo stock_results.json")
+    print("Resultados guardados en el archivo JSON: stock_results.json")
+    print("Resultados guardados en el archivo Excel: stock_results.xlsx")
 
     mensaje_distribucion_puntaje = mostrar_distribucion_puntaje(results)
     logging.info(mensaje_distribucion_puntaje)
