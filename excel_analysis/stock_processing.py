@@ -1,7 +1,7 @@
 """
 Autor: David Duran
 Fecha de creación: 05/08/2023
-Fecha de moficación: 24/10/2023
+Fecha de moficación: 03/01/2024
 
 Este paquete se utiliza para comprobar si cierta acción va a subir o bajar usando machine learning.
 """
@@ -14,14 +14,22 @@ import numpy as np
 from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
 from excel_analysis.utils.data_loaders import get_valid_sheets, load_data
 from excel_analysis.models.neural_networks import obtener_threshold_optimo
-from excel_analysis.utils.grading_system import assign_stock_grade, assign_performance_grade, assign_final_value_grade
-from excel_analysis.utils.display_results import mostrar_top_stocks, mostrar_distribucion_puntaje
+from excel_analysis.utils.grading_system import (
+    assign_stock_grade,
+    assign_performance_grade,
+    assign_final_value_grade,
+)
+from excel_analysis.utils.display_results import (
+    mostrar_top_stocks,
+    mostrar_distribucion_puntaje,
+)
 from excel_analysis.utils.data_validation import validar_dataframe
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
-from excel_analysis.store_data import store_results_to_json
+from excel_analysis.store_data import store_results_to_json, store_results_to_excel
 
 # Configuración del logging
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
+
 
 def parse_argumentos():
     """
@@ -33,10 +41,11 @@ def parse_argumentos():
     parser.add_argument(
         "--debug",
         help="Activa el modo de depuración para obtener una salida detallada del proceso.",
-        type=lambda x: (str(x).lower() == 'true'),
-        default=False
+        type=lambda x: (str(x).lower() == "true"),
+        default=False,
     )
     return parser.parse_args()
+
 
 def process_stock_data(df, sheet_name, results_list):
     """
@@ -49,10 +58,15 @@ def process_stock_data(df, sheet_name, results_list):
     - sheet_name: Nombre de la hoja de cálculo.
     - results_list: Lista donde se almacenan los resultados de cada acción.
     """
-    columnas_requeridas = [COLUMN_NAMES["price"], COLUMN_NAMES["detail"]] + COLUMN_NAMES["features"]
+    columnas_requeridas = [
+        COLUMN_NAMES["price"],
+        COLUMN_NAMES["detail"],
+    ] + COLUMN_NAMES["features"]
 
     if not validar_dataframe(df, columnas_requeridas):
-        logging.warning(f"La hoja '{sheet_name}' contiene datos inconsistentes o vacíos. Ignorando esta hoja.")
+        logging.warning(
+            f"La hoja '{sheet_name}' contiene datos inconsistentes o vacíos. Ignorando esta hoja."
+        )
         return
 
     logging.info(f"Procesando stock: {sheet_name}")
@@ -60,7 +74,9 @@ def process_stock_data(df, sheet_name, results_list):
     modelo, y_pred, Y_test = entrenar_y_predecir(df, columnas_requeridas)
 
     if modelo is None:
-        logging.warning(f"La hoja '{sheet_name}' no tiene suficientes datos para entrenar el modelo. Ignorando esta hoja.")
+        logging.warning(
+            f"La hoja '{sheet_name}' no tiene suficientes datos para entrenar el modelo. Ignorando esta hoja."
+        )
         return
 
     # Asignar una calificación a la acción
@@ -69,12 +85,25 @@ def process_stock_data(df, sheet_name, results_list):
 
     # Obtener el umbral (threshold) óptimo
     optimal_threshold = obtener_threshold_optimo(Y_test, y_pred)
-    conteo_positivos_reales  = np.sum(Y_test)
+    conteo_positivos_reales = np.sum(Y_test)
     conteo_positivos_predichos = np.sum((y_pred > optimal_threshold).astype(int))
 
     final_value = conteo_positivos_reales - conteo_positivos_predichos
-    results_list.append(SheetResult(sheet_name, final_value, stock_grade, optimal_threshold, predicted_return, None, None))
-    logging.info(f"💰 Valor final de esta hoja: {final_value}, Threshold: {optimal_threshold}, Grado: {stock_grade}")
+    results_list.append(
+        SheetResult(
+            sheet_name,
+            final_value,
+            stock_grade,
+            optimal_threshold,
+            predicted_return,
+            None,
+            None,
+        )
+    )
+    logging.info(
+        f"💰 Valor final de esta hoja: {final_value}, Threshold: {optimal_threshold}, Grado: {stock_grade}"
+    )
+
 
 # Programa principal
 def main():
@@ -86,7 +115,9 @@ def main():
         logging.error("No se encontraron hojas válidas en el archivo Excel.")
         return
 
-    logging.info(f"📂 Encontramos {len(valid_sheets)} hojas válidas en el archivo Excel\n")
+    logging.info(
+        f"📂 Encontramos {len(valid_sheets)} hojas válidas en el archivo Excel\n"
+    )
 
     all_data = load_data(sheets_to_load=valid_sheets, single_sheet=False)
 
@@ -104,17 +135,23 @@ def main():
     performance_grades = assign_performance_grade(predicted_returns)
 
     # Asignar una calificación utilizando el valor final de cada acción
-    final_value_grades = assign_final_value_grade([result.final_value for result in results])
+    final_value_grades = assign_final_value_grade(
+        [result.final_value for result in results]
+    )
 
     for index, result in enumerate(results):
-        updated_result = result._replace(performance_grade=performance_grades[index], final_value_grade=final_value_grades[index])
+        updated_result = result._replace(
+            performance_grade=performance_grades[index],
+            final_value_grade=final_value_grades[index],
+        )
         results[index] = updated_result
 
     # Ordenando los resultados
     resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
 
     # Guardar los resultados en un archivo JSON
-    store_results_to_json(resultados_ordenados)
+    # store_results_to_json(resultados_ordenados)
+    store_results_to_excel(resultados_ordenados)
     print(f"Resultados guardados en el archivo stock_results.json")
 
     mensaje_distribucion_puntaje = mostrar_distribucion_puntaje(results)
@@ -122,6 +159,7 @@ def main():
 
     mensaje_top_stocks = mostrar_top_stocks(resultados_ordenados, valid_sheets)
     print(f"{mensaje_top_stocks}")
+
 
 if __name__ == "__main__":
     try:
