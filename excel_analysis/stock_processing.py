@@ -6,7 +6,6 @@ Fecha de moficación: 03/01/2024
 Este paquete se utiliza para comprobar si cierta acción va a subir o bajar usando machine learning.
 """
 
-import argparse
 import logging
 import numpy as np
 
@@ -25,26 +24,11 @@ from excel_analysis.utils.display_results import (
 )
 from excel_analysis.utils.data_validation import validar_dataframe
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
+from excel_analysis.utils.argument_parser import parse_argumentos
 from excel_analysis.store_data import store_results_to_json, store_results_to_excel
 
 # Configuración del logging
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
-
-
-def parse_argumentos():
-    """
-    Parsea y valida los argumentos proporcionados al script.
-    """
-    parser = argparse.ArgumentParser(
-        description="Analiza hojas de cálculo para predecir el comportamiento de las acciones utilizando machine learning."
-    )
-    parser.add_argument(
-        "--debug",
-        help="Activa el modo de depuración para obtener una salida detallada del proceso.",
-        type=lambda x: (str(x).lower() == "true"),
-        default=False,
-    )
-    return parser.parse_args()
 
 
 def process_stock_data(df, sheet_name, results_list):
