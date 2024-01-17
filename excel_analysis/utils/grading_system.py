@@ -140,3 +140,21 @@ def assign_final_value_grade(final_values):
     grades = ["A", "B", "C", "D", "E"]
 
     return [assign_grade_from_quantiles(fv, cuantiles, grades) for fv in final_values]
+
+
+def assign_grades_and_update_results(results):
+    # Calcular el rendimiento esperado de cada acción
+    predicted_returns = [result.predicted_return for result in results]
+    performance_grades = assign_performance_grade(predicted_returns)
+
+    # Asignar una calificación utilizando el valor final de cada acción
+    final_value_grades = assign_final_value_grade(
+        [result.final_value for result in results]
+    )
+
+    for index, result in enumerate(results):
+        updated_result = result._replace(
+            performance_grade=performance_grades[index],
+            final_value_grade=final_value_grades[index],
+        )
+        results[index] = updated_result

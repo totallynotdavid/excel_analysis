@@ -22,8 +22,7 @@ from excel_analysis.utils.data_loaders import validate_and_load_sheets
 from excel_analysis.models.neural_networks import obtener_threshold_optimo
 from excel_analysis.utils.grading_system import (
     assign_stock_grade,
-    assign_performance_grade,
-    assign_final_value_grade,
+    assign_grades_and_update_results,
 )
 from excel_analysis.utils.display_results import (
     mostrar_top_stocks,
@@ -95,24 +94,6 @@ def process_stock_data(df, sheet_name, results_list, columns):
     logging.info(
         f"💰 Valor final de esta hoja: {final_value}, Threshold: {optimal_threshold}, Grado: {stock_grade}"
     )
-
-
-def assign_grades_and_update_results(results):
-    # Calcular el rendimiento esperado de cada acción
-    predicted_returns = [result.predicted_return for result in results]
-    performance_grades = assign_performance_grade(predicted_returns)
-
-    # Asignar una calificación utilizando el valor final de cada acción
-    final_value_grades = assign_final_value_grade(
-        [result.final_value for result in results]
-    )
-
-    for index, result in enumerate(results):
-        updated_result = result._replace(
-            performance_grade=performance_grades[index],
-            final_value_grade=final_value_grades[index],
-        )
-        results[index] = updated_result
 
 
 def store_and_display_results(results, valid_sheets):
