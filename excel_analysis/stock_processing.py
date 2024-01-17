@@ -15,7 +15,7 @@ from excel_analysis.constants import (
     TRAIN_TEST_SPLIT_RATIO,
 )
 from excel_analysis.utils.argument_parser import parse_argumentos
-from excel_analysis.utils.data_loaders import validar_y_cargar_hojas
+from excel_analysis.utils.cargadores_de_datos import validar_y_cargar_hojas
 from excel_analysis.utils.data_validation import validar_datos_hoja
 from excel_analysis.utils.display_results import almacenar_y_mostrar_resultados
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
