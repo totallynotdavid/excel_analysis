@@ -1,7 +1,7 @@
 """
 Autor: David Duran
 Fecha de creación: 05/08/2023
-Fecha de moficación: 03/01/2024
+Fecha de moficación: 14/01/2024
 
 Este paquete se utiliza para comprobar si cierta acción va a subir o bajar usando machine learning.
 """
@@ -10,7 +10,12 @@ import logging
 import numpy as np
 
 # Importar funciones locales
-from excel_analysis.constants import EXCEL_FILE_NAME, COLUMN_NAMES, SheetResult
+from excel_analysis.constants import (
+    EXCEL_CONFIGURATIONS,
+    SheetResult,
+    RESULTS_JSON_FILE_NAME,
+    RESULTS_EXCEL_FILE_NAME,
+)
 from excel_analysis.utils.data_loaders import get_valid_sheets, load_data
 from excel_analysis.models.neural_networks import obtener_threshold_optimo
 from excel_analysis.utils.grading_system import (
@@ -31,7 +36,7 @@ from excel_analysis.store_data import store_results_to_json, store_results_to_ex
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 
-def process_stock_data(df, sheet_name, results_list):
+def process_stock_data(df, sheet_name, results_list, columns):
     """
     Procesar los datos de una hoja de cálculo para predecir el comportamiento de una acción.
     Esta función se encarga de entrenar el modelo, predecir los valores y asignar una calificación a la acción.
@@ -43,9 +48,9 @@ def process_stock_data(df, sheet_name, results_list):
     - results_list: Lista donde se almacenan los resultados de cada acción.
     """
     columnas_requeridas = [
-        COLUMN_NAMES["price"],
-        COLUMN_NAMES["detail"],
-    ] + COLUMN_NAMES["features"]
+        columns["price"],
+        columns["detail"],
+    ] + columns["features"]
 
     if not validar_dataframe(df, columnas_requeridas):
         logging.warning(
@@ -89,31 +94,23 @@ def process_stock_data(df, sheet_name, results_list):
     )
 
 
-# Programa principal
-def main():
-    args = parse_argumentos()
-    logging.getLogger().setLevel(logging.DEBUG if args.debug else logging.ERROR)
-
-    valid_sheets = get_valid_sheets(EXCEL_FILE_NAME)
+def validate_and_load_sheets(file_name):
+    valid_sheets = get_valid_sheets(file_name)
     if not valid_sheets:
         logging.error("No se encontraron hojas válidas en el archivo Excel.")
-        return
+        return None, None
 
     logging.info(
         f"📂 Encontramos {len(valid_sheets)} hojas válidas en el archivo Excel\n"
     )
 
-    all_data = load_data(sheets_to_load=valid_sheets, single_sheet=False)
+    all_data = load_data(
+        file_name=file_name, sheets_to_load=valid_sheets, single_sheet=False
+    )
+    return valid_sheets, all_data
 
-    if all_data is None:
-        return
 
-    results = []
-
-    for sheet_name in valid_sheets:
-        if sheet_name in all_data:
-            process_stock_data(all_data[sheet_name], sheet_name, results)
-
+def assign_grades_and_update_results(results):
     # Calcular el rendimiento esperado de cada acción
     predicted_returns = [result.predicted_return for result in results]
     performance_grades = assign_performance_grade(predicted_returns)
@@ -130,20 +127,47 @@ def main():
         )
         results[index] = updated_result
 
+
+def store_and_display_results(results, valid_sheets):
     # Ordenando los resultados
     resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
 
     # Guardar los resultados en un archivo JSON
     store_results_to_json(resultados_ordenados)
     store_results_to_excel(resultados_ordenados)
-    print("Resultados guardados en el archivo JSON: stock_results.json")
-    print("Resultados guardados en el archivo Excel: stock_results.xlsx")
+    logging.info(
+        f"📒 Resultados guardados en los archivos {RESULTS_JSON_FILE_NAME} y {RESULTS_EXCEL_FILE_NAME}"
+    )
 
     mensaje_distribucion_puntaje = mostrar_distribucion_puntaje(results)
     logging.info(mensaje_distribucion_puntaje)
 
     mensaje_top_stocks = mostrar_top_stocks(resultados_ordenados, valid_sheets)
     print(f"{mensaje_top_stocks}")
+
+
+# Programa principal
+def main():
+    args = parse_argumentos()
+    logging.getLogger().setLevel(logging.DEBUG if args.debug else logging.ERROR)
+
+    results = []
+
+    for config_name, config in EXCEL_CONFIGURATIONS.items():
+        logging.info(f"📂 Procesando archivo: {config_name}")
+        file_name = config["file_name"]
+        columns = config["columns"]
+
+        valid_sheets, all_data = validate_and_load_sheets(file_name)
+        if all_data is None:
+            continue
+
+        for sheet_name in valid_sheets:
+            if sheet_name in all_data:
+                process_stock_data(all_data[sheet_name], sheet_name, results, columns)
+
+    assign_grades_and_update_results(results)
+    store_and_display_results(results, valid_sheets)
 
 
 if __name__ == "__main__":

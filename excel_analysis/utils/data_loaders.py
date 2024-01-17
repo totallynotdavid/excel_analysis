@@ -1,10 +1,8 @@
 import logging
 import pandas as pd
 
-from excel_analysis.constants import EXCEL_FILE_NAME, INDEX_COLUMN
 
-
-def get_valid_sheets(file_name):
+def get_valid_sheets(file_name, index_column):
     """
     Recupera las hojas válidas del archivo Excel proporcionado. Una hoja se considera válida si contiene el INDEX_COLUMN.
 
@@ -17,12 +15,12 @@ def get_valid_sheets(file_name):
     try:
         headers = pd.read_excel(file_name, sheet_name=None, engine="openpyxl", nrows=0)
         valid_sheets = [
-            sheet for sheet, df in headers.items() if INDEX_COLUMN in df.columns
+            sheet for sheet, df in headers.items() if index_column in df.columns
         ]
 
         if not valid_sheets:
             logging.error(
-                f"El archivo '{file_name}' no tiene hojas válidas con la columna '{INDEX_COLUMN}'."
+                f"El archivo '{file_name}' no tiene hojas válidas con la columna '{index_column}'."
             )
             return []
 
@@ -35,7 +33,7 @@ def get_valid_sheets(file_name):
         return []
 
 
-def load_data(file_name=EXCEL_FILE_NAME, sheets_to_load=None, single_sheet=False):
+def load_data(file_name, index_column, sheets_to_load=None, single_sheet=False):
     """
     Carga datos del archivo Excel proporcionado.
 
@@ -48,7 +46,7 @@ def load_data(file_name=EXCEL_FILE_NAME, sheets_to_load=None, single_sheet=False
     - dict: Diccionario que contiene datos de las hojas de Excel.
     """
     try:
-        valid_sheets = get_valid_sheets(file_name)
+        valid_sheets = get_valid_sheets(file_name, index_column)
 
         if not valid_sheets:
             return None
@@ -60,7 +58,7 @@ def load_data(file_name=EXCEL_FILE_NAME, sheets_to_load=None, single_sheet=False
             file_name,
             sheet_name=valid_sheets,
             engine="openpyxl",
-            index_col=INDEX_COLUMN,
+            index_col=index_column,
         )
 
         if not data:

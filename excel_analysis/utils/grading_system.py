@@ -1,5 +1,4 @@
 import numpy as np
-from excel_analysis.constants import COLUMN_NAMES
 
 
 def compute_predicted_return(model, X_test):
@@ -16,7 +15,7 @@ def compute_predicted_return(model, X_test):
     return np.sum(model.predict(X_test))
 
 
-def clean_daily_returns(stock_data):
+def clean_daily_returns(stock_data, price_column):
     """
     Procesar los datos de la acción para calcular los retornos diarios y manejar valores NaN o infinitos.
 
@@ -26,7 +25,7 @@ def clean_daily_returns(stock_data):
     Retorna:
     - Retornos diarios de la acción limpios.
     """
-    daily_returns = stock_data[COLUMN_NAMES["price"]].pct_change().dropna()
+    daily_returns = stock_data[price_column].pct_change().dropna()
     daily_returns.replace([np.inf, -np.inf], np.nan, inplace=True)
     daily_returns.interpolate(inplace=True)
     daily_returns.fillna(method="ffill", inplace=True)
