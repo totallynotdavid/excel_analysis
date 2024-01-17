@@ -1,5 +1,5 @@
 import numpy as np
-from excel_analysis.utils.grading_system import (
+from excel_analysis.utils.sistema_de_calificaciones import (
     assign_stock_grade,
 )
 from excel_analysis.models.neural_networks import obtener_threshold_optimo

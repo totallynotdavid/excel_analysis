@@ -19,7 +19,7 @@ from excel_analysis.utils.cargadores_de_datos import validar_y_cargar_hojas
 from excel_analysis.utils.validacion_de_datos import validar_datos_hoja
 from excel_analysis.utils.mostrar_resultados import almacenar_y_mostrar_resultados
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
-from excel_analysis.utils.grading_system import (
+from excel_analysis.utils.sistema_de_calificaciones import (
     asignar_calificaciones_y_actualizar_resultados,
 )
 from excel_analysis.utils.logging import configurar_registro, establecer_nivel_debug
