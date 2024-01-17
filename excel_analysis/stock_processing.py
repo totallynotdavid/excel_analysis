@@ -64,7 +64,7 @@ def procesar_datos_stock(df, sheet_name, results_list, columns):
     results_list.append(resultado_hoja)
 
     logging.info(
-        f"💰 Valor final de esta hoja: {resultado_hoja.final_value}, Threshold: {resultado_hoja.optimal_threshold}, Grado: {resultado_hoja.stock_grade}"
+        f"💰 Valor final de esta hoja: {resultado_hoja.final_value}, Threshold: {resultado_hoja.optimal_threshold}, Grado: {resultado_hoja.grade}"
     )
 
 
