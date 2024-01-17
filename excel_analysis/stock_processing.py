@@ -84,6 +84,7 @@ def main():
         logging.info(f"📂 Procesando archivo: {config_name}")
         file_name = config["file_name"]
         index_column = INDEX_COLUMN
+        output_file_prefix = config_name
 
         valid_sheets, all_data = validar_y_cargar_hojas(file_name, index_column)
         if all_data is None:
@@ -96,7 +97,7 @@ def main():
                 )
 
     asignar_calificaciones_y_actualizar_resultados(results)
-    almacenar_y_mostrar_resultados(results, valid_sheets)
+    almacenar_y_mostrar_resultados(results, valid_sheets, output_file_prefix)
 
 
 if __name__ == "__main__":

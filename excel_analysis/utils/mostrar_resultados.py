@@ -71,13 +71,16 @@ def mostrar_top_stocks(resultados_ordenados, valid_sheets):
     return mensaje_stocks
 
 
-def almacenar_y_mostrar_resultados(results, valid_sheets):
+def almacenar_y_mostrar_resultados(results, valid_sheets, output_file_prefix):
     # Ordenando los resultados
     resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
 
+    json_filename = f"{output_file_prefix}_results.json"
+    excel_filename = f"{output_file_prefix}_results.xlsx"
+
     # Guardar los resultados en un archivo JSON
-    store_results_to_json(resultados_ordenados)
-    store_results_to_excel(resultados_ordenados)
+    store_results_to_json(resultados_ordenados, filename=json_filename)
+    store_results_to_excel(resultados_ordenados, filename=excel_filename)
     logging.info(
         f"📒 Resultados guardados en los archivos {RESULTS_JSON_FILE_NAME} y {RESULTS_EXCEL_FILE_NAME}"
     )
