@@ -96,8 +96,8 @@ def main():
                     all_data[sheet_name], sheet_name, results, config["columns"]
                 )
 
-    asignar_calificaciones_y_actualizar_resultados(results)
-    almacenar_y_mostrar_resultados(results, valid_sheets, output_file_prefix)
+        asignar_calificaciones_y_actualizar_resultados(results)
+        almacenar_y_mostrar_resultados(results, valid_sheets, output_file_prefix)
 
 
 if __name__ == "__main__":
