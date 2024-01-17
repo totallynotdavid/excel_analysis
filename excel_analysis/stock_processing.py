@@ -32,10 +32,8 @@ from excel_analysis.utils.display_results import (
 from excel_analysis.utils.data_validation import validar_dataframe
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
 from excel_analysis.utils.argument_parser import parse_argumentos
+from excel_analysis.utils.logging import configurar_registro, establecer_nivel_debug
 from excel_analysis.store_data import store_results_to_json, store_results_to_excel
-
-# Configuración del logging
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 
 def process_stock_data(df, sheet_name, results_list, columns):
@@ -157,7 +155,12 @@ def store_and_display_results(results, valid_sheets):
 # Programa principal
 def main():
     args = parse_argumentos()
-    logging.getLogger().setLevel(logging.DEBUG if args.debug else logging.ERROR)
+    configurar_registro()
+
+    if args.debug:
+        establecer_nivel_debug()
+    else:
+        logging.getLogger().setLevel(logging.ERROR)
 
     results = []
 
