@@ -22,11 +22,11 @@ from excel_analysis.utils.entrenamiento import entrenar_y_predecir
 from excel_analysis.utils.sistema_de_calificaciones import (
     asignar_calificaciones_y_actualizar_resultados,
 )
-from excel_analysis.utils.logging import configurar_registro, establecer_nivel_debug
+from excel_analysis.utils.registro import configurar_registro, establecer_nivel_debug
 from excel_analysis.utils.postprocesamiento import calcular_calificaciones_y_umbral
 
 
-def process_stock_data(df, sheet_name, results_list, columns):
+def procesar_datos_stock(df, sheet_name, results_list, columns):
     """
     Procesar los datos de una hoja de cálculo para predecir el comportamiento de una acción.
     Esta función se encarga de entrenar el modelo, predecir los valores y asignar una calificación a la acción.
@@ -91,7 +91,7 @@ def main():
 
         for sheet_name in valid_sheets:
             if sheet_name in all_data:
-                process_stock_data(
+                procesar_datos_stock(
                     all_data[sheet_name], sheet_name, results, config["columns"]
                 )
 
