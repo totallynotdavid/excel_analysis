@@ -2,7 +2,7 @@ import logging
 import pandas as pd
 
 
-def validate_and_load_sheets(file_name, index_column):
+def validar_y_cargar_hojas(file_name, index_column):
     valid_sheets = get_valid_sheets(file_name, index_column)
     if not valid_sheets:
         logging.error("No se encontraron hojas válidas en el archivo Excel.")

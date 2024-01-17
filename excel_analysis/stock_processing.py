@@ -15,11 +15,13 @@ from excel_analysis.constants import (
     TRAIN_TEST_SPLIT_RATIO,
 )
 from excel_analysis.utils.argument_parser import parse_argumentos
-from excel_analysis.utils.data_loaders import validate_and_load_sheets
+from excel_analysis.utils.data_loaders import validar_y_cargar_hojas
 from excel_analysis.utils.data_validation import validar_datos_hoja
-from excel_analysis.utils.display_results import store_and_display_results
+from excel_analysis.utils.display_results import almacenar_y_mostrar_resultados
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
-from excel_analysis.utils.grading_system import assign_grades_and_update_results
+from excel_analysis.utils.grading_system import (
+    asignar_calificaciones_y_actualizar_resultados,
+)
 from excel_analysis.utils.logging import configurar_registro, establecer_nivel_debug
 from excel_analysis.utils.postprocesamiento import calcular_calificaciones_y_umbral
 
@@ -34,6 +36,7 @@ def process_stock_data(df, sheet_name, results_list, columns):
     - df: DataFrame que contiene los datos de la acción.
     - sheet_name: Nombre de la hoja de cálculo.
     - results_list: Lista donde se almacenan los resultados de cada acción.
+    - columns: Diccionario que contiene los nombres de las columnas del DataFrame.
     """
     columnas_requeridas = [
         columns["price"],
@@ -82,7 +85,7 @@ def main():
         file_name = config["file_name"]
         index_column = INDEX_COLUMN
 
-        valid_sheets, all_data = validate_and_load_sheets(file_name, index_column)
+        valid_sheets, all_data = validar_y_cargar_hojas(file_name, index_column)
         if all_data is None:
             continue
 
@@ -92,8 +95,8 @@ def main():
                     all_data[sheet_name], sheet_name, results, config["columns"]
                 )
 
-    assign_grades_and_update_results(results)
-    store_and_display_results(results, valid_sheets)
+    asignar_calificaciones_y_actualizar_resultados(results)
+    almacenar_y_mostrar_resultados(results, valid_sheets)
 
 
 if __name__ == "__main__":

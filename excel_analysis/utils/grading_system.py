@@ -142,7 +142,7 @@ def assign_final_value_grade(final_values):
     return [assign_grade_from_quantiles(fv, cuantiles, grades) for fv in final_values]
 
 
-def assign_grades_and_update_results(results):
+def asignar_calificaciones_y_actualizar_resultados(results):
     # Calcular el rendimiento esperado de cada acción
     predicted_returns = [result.predicted_return for result in results]
     performance_grades = assign_performance_grade(predicted_returns)

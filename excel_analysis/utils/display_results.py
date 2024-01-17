@@ -71,7 +71,7 @@ def mostrar_top_stocks(resultados_ordenados, valid_sheets):
     return mensaje_stocks
 
 
-def store_and_display_results(results, valid_sheets):
+def almacenar_y_mostrar_resultados(results, valid_sheets):
     # Ordenando los resultados
     resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
 
