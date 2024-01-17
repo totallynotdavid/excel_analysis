@@ -23,19 +23,10 @@ from excel_analysis.utils.grading_system import (
     assign_grades_and_update_results,
 )
 from excel_analysis.utils.display_results import store_and_display_results
-from excel_analysis.utils.data_validation import validar_dataframe
+from excel_analysis.utils.data_validation import validar_datos_hoja
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
 from excel_analysis.utils.argument_parser import parse_argumentos
 from excel_analysis.utils.logging import configurar_registro, establecer_nivel_debug
-
-
-def validar_datos_hoja(df, sheet_name, columnas_requeridas):
-    if not validar_dataframe(df, columnas_requeridas):
-        logging.warning(
-            f"La hoja '{sheet_name}' contiene datos inconsistentes o vacíos. Ignorando esta hoja."
-        )
-        return False
-    return True
 
 
 def calcular_calificaciones_y_umbral(df, y_pred, Y_test, price_column, sheet_name):
