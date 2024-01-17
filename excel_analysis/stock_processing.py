@@ -13,8 +13,6 @@ import numpy as np
 from excel_analysis.constants import (
     EXCEL_CONFIGURATIONS,
     SheetResult,
-    RESULTS_JSON_FILE_NAME,
-    RESULTS_EXCEL_FILE_NAME,
     INDEX_COLUMN,
     TRAIN_TEST_SPLIT_RATIO,
 )
@@ -24,15 +22,11 @@ from excel_analysis.utils.grading_system import (
     assign_stock_grade,
     assign_grades_and_update_results,
 )
-from excel_analysis.utils.display_results import (
-    mostrar_top_stocks,
-    mostrar_distribucion_puntaje,
-)
+from excel_analysis.utils.display_results import store_and_display_results
 from excel_analysis.utils.data_validation import validar_dataframe
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
 from excel_analysis.utils.argument_parser import parse_argumentos
 from excel_analysis.utils.logging import configurar_registro, establecer_nivel_debug
-from excel_analysis.store_data import store_results_to_json, store_results_to_excel
 
 
 def process_stock_data(df, sheet_name, results_list, columns):
@@ -94,24 +88,6 @@ def process_stock_data(df, sheet_name, results_list, columns):
     logging.info(
         f"💰 Valor final de esta hoja: {final_value}, Threshold: {optimal_threshold}, Grado: {stock_grade}"
     )
-
-
-def store_and_display_results(results, valid_sheets):
-    # Ordenando los resultados
-    resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
-
-    # Guardar los resultados en un archivo JSON
-    store_results_to_json(resultados_ordenados)
-    store_results_to_excel(resultados_ordenados)
-    logging.info(
-        f"📒 Resultados guardados en los archivos {RESULTS_JSON_FILE_NAME} y {RESULTS_EXCEL_FILE_NAME}"
-    )
-
-    mensaje_distribucion_puntaje = mostrar_distribucion_puntaje(results)
-    logging.info(mensaje_distribucion_puntaje)
-
-    mensaje_top_stocks = mostrar_top_stocks(resultados_ordenados, valid_sheets)
-    print(f"{mensaje_top_stocks}")
 
 
 # Programa principal
