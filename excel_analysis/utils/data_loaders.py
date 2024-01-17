@@ -2,6 +2,25 @@ import logging
 import pandas as pd
 
 
+def validate_and_load_sheets(file_name, index_column):
+    valid_sheets = get_valid_sheets(file_name, index_column)
+    if not valid_sheets:
+        logging.error("No se encontraron hojas válidas en el archivo Excel.")
+        return None, None
+
+    logging.info(
+        f"📂 Encontramos {len(valid_sheets)} hojas válidas en el archivo Excel\n"
+    )
+
+    all_data = load_data(
+        file_name=file_name,
+        index_column=index_column,
+        sheets_to_load=valid_sheets,
+        single_sheet=False,
+    )
+    return valid_sheets, all_data
+
+
 def get_valid_sheets(file_name, index_column):
     """
     Recupera las hojas válidas del archivo Excel proporcionado. Una hoja se considera válida si contiene el INDEX_COLUMN.
