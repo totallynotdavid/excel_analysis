@@ -51,7 +51,7 @@ def assign_grade_from_quantiles(value, cuantiles, grades):
     return grades[-1]
 
 
-def assign_stock_grade(stock_data, y_pred, Y_test):
+def assign_stock_grade(stock_data, y_pred, Y_test, price_column):
     """
     Asignar una calificación a la acción basada en el error de predicción y la volatilidad.
 
@@ -64,7 +64,7 @@ def assign_stock_grade(stock_data, y_pred, Y_test):
     - Grade (A, B, C, D, E).
     """
     prediction_error = np.mean(np.abs(y_pred - Y_test))
-    volatility = clean_daily_returns(stock_data).std()
+    volatility = clean_daily_returns(stock_data, price_column).std()
 
     error_quantiles = [0.4, 0.5, 0.6, 0.7]
     volatility_quantiles = [0.6, 0.8, 1.0, 1.2]

@@ -16,6 +16,7 @@ from excel_analysis.constants import (
     RESULTS_JSON_FILE_NAME,
     RESULTS_EXCEL_FILE_NAME,
     INDEX_COLUMN,
+    TRAIN_TEST_SPLIT_RATIO,
 )
 from excel_analysis.utils.data_loaders import get_valid_sheets, load_data
 from excel_analysis.models.neural_networks import obtener_threshold_optimo
@@ -52,6 +53,7 @@ def process_stock_data(df, sheet_name, results_list, columns):
         columns["price"],
         columns["detail"],
     ] + columns["features"]
+    price_column = columns["price"]
 
     if not validar_dataframe(df, columnas_requeridas):
         logging.warning(
@@ -61,7 +63,9 @@ def process_stock_data(df, sheet_name, results_list, columns):
 
     logging.info(f"Procesando stock: {sheet_name}")
 
-    modelo, y_pred, Y_test = entrenar_y_predecir(df, columnas_requeridas)
+    modelo, y_pred, Y_test = entrenar_y_predecir(
+        df, columns["features"], columns["detail"], TRAIN_TEST_SPLIT_RATIO
+    )
 
     if modelo is None:
         logging.warning(
@@ -70,7 +74,7 @@ def process_stock_data(df, sheet_name, results_list, columns):
         return
 
     # Asignar una calificación a la acción
-    stock_grade = assign_stock_grade(df, y_pred, Y_test)
+    stock_grade = assign_stock_grade(df, y_pred, Y_test, price_column)
     predicted_return = np.sum(y_pred)
 
     # Obtener el umbral (threshold) óptimo
@@ -160,7 +164,6 @@ def main():
     for config_name, config in EXCEL_CONFIGURATIONS.items():
         logging.info(f"📂 Procesando archivo: {config_name}")
         file_name = config["file_name"]
-        columns = config["columns"]
         index_column = INDEX_COLUMN
 
         valid_sheets, all_data = validate_and_load_sheets(file_name, index_column)
@@ -169,7 +172,9 @@ def main():
 
         for sheet_name in valid_sheets:
             if sheet_name in all_data:
-                process_stock_data(all_data[sheet_name], sheet_name, results, columns)
+                process_stock_data(
+                    all_data[sheet_name], sheet_name, results, config["columns"]
+                )
 
     assign_grades_and_update_results(results)
     store_and_display_results(results, valid_sheets)
