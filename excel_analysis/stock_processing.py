@@ -15,6 +15,7 @@ from excel_analysis.constants import (
     SheetResult,
     RESULTS_JSON_FILE_NAME,
     RESULTS_EXCEL_FILE_NAME,
+    INDEX_COLUMN,
 )
 from excel_analysis.utils.data_loaders import get_valid_sheets, load_data
 from excel_analysis.models.neural_networks import obtener_threshold_optimo
@@ -94,8 +95,8 @@ def process_stock_data(df, sheet_name, results_list, columns):
     )
 
 
-def validate_and_load_sheets(file_name):
-    valid_sheets = get_valid_sheets(file_name)
+def validate_and_load_sheets(file_name, index_column):
+    valid_sheets = get_valid_sheets(file_name, index_column)
     if not valid_sheets:
         logging.error("No se encontraron hojas válidas en el archivo Excel.")
         return None, None
@@ -105,7 +106,10 @@ def validate_and_load_sheets(file_name):
     )
 
     all_data = load_data(
-        file_name=file_name, sheets_to_load=valid_sheets, single_sheet=False
+        file_name=file_name,
+        index_column=index_column,
+        sheets_to_load=valid_sheets,
+        single_sheet=False,
     )
     return valid_sheets, all_data
 
@@ -157,8 +161,9 @@ def main():
         logging.info(f"📂 Procesando archivo: {config_name}")
         file_name = config["file_name"]
         columns = config["columns"]
+        index_column = INDEX_COLUMN
 
-        valid_sheets, all_data = validate_and_load_sheets(file_name)
+        valid_sheets, all_data = validate_and_load_sheets(file_name, index_column)
         if all_data is None:
             continue
 
