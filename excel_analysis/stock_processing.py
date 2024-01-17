@@ -29,6 +29,38 @@ from excel_analysis.utils.argument_parser import parse_argumentos
 from excel_analysis.utils.logging import configurar_registro, establecer_nivel_debug
 
 
+def validar_datos_hoja(df, sheet_name, columnas_requeridas):
+    if not validar_dataframe(df, columnas_requeridas):
+        logging.warning(
+            f"La hoja '{sheet_name}' contiene datos inconsistentes o vacíos. Ignorando esta hoja."
+        )
+        return False
+    return True
+
+
+def calcular_calificaciones_y_umbral(df, y_pred, Y_test, price_column, sheet_name):
+    # Asignar una calificación a la acción
+    stock_grade = assign_stock_grade(df, y_pred, Y_test, price_column)
+    predicted_return = np.sum(y_pred)
+
+    # Obtener el umbral (threshold) óptimo
+    optimal_threshold = obtener_threshold_optimo(Y_test, y_pred)
+    conteo_positivos_reales = np.sum(Y_test)
+    conteo_positivos_predichos = np.sum((y_pred > optimal_threshold).astype(int))
+
+    final_value = conteo_positivos_reales - conteo_positivos_predichos
+
+    return SheetResult(
+        sheet_name,
+        final_value,
+        stock_grade,
+        optimal_threshold,
+        predicted_return,
+        None,
+        None,
+    )
+
+
 def process_stock_data(df, sheet_name, results_list, columns):
     """
     Procesar los datos de una hoja de cálculo para predecir el comportamiento de una acción.
@@ -44,12 +76,8 @@ def process_stock_data(df, sheet_name, results_list, columns):
         columns["price"],
         columns["detail"],
     ] + columns["features"]
-    price_column = columns["price"]
 
-    if not validar_dataframe(df, columnas_requeridas):
-        logging.warning(
-            f"La hoja '{sheet_name}' contiene datos inconsistentes o vacíos. Ignorando esta hoja."
-        )
+    if not validar_datos_hoja(df, sheet_name, columnas_requeridas):
         return
 
     logging.info(f"Procesando stock: {sheet_name}")
@@ -64,29 +92,13 @@ def process_stock_data(df, sheet_name, results_list, columns):
         )
         return
 
-    # Asignar una calificación a la acción
-    stock_grade = assign_stock_grade(df, y_pred, Y_test, price_column)
-    predicted_return = np.sum(y_pred)
-
-    # Obtener el umbral (threshold) óptimo
-    optimal_threshold = obtener_threshold_optimo(Y_test, y_pred)
-    conteo_positivos_reales = np.sum(Y_test)
-    conteo_positivos_predichos = np.sum((y_pred > optimal_threshold).astype(int))
-
-    final_value = conteo_positivos_reales - conteo_positivos_predichos
-    results_list.append(
-        SheetResult(
-            sheet_name,
-            final_value,
-            stock_grade,
-            optimal_threshold,
-            predicted_return,
-            None,
-            None,
-        )
+    resultado_hoja = calcular_calificaciones_y_umbral(
+        df, y_pred, Y_test, columns["price"], sheet_name
     )
+    results_list.append(resultado_hoja)
+
     logging.info(
-        f"💰 Valor final de esta hoja: {final_value}, Threshold: {optimal_threshold}, Grado: {stock_grade}"
+        f"💰 Valor final de esta hoja: {resultado_hoja.final_value}, Threshold: {resultado_hoja.optimal_threshold}, Grado: {resultado_hoja.stock_grade}"
     )
 
 
