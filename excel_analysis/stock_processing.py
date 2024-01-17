@@ -7,49 +7,21 @@ Este paquete se utiliza para comprobar si cierta acción va a subir o bajar usan
 """
 
 import logging
-import numpy as np
 
 # Importar funciones locales
 from excel_analysis.constants import (
     EXCEL_CONFIGURATIONS,
-    SheetResult,
     INDEX_COLUMN,
     TRAIN_TEST_SPLIT_RATIO,
 )
 from excel_analysis.utils.data_loaders import validate_and_load_sheets
-from excel_analysis.models.neural_networks import obtener_threshold_optimo
-from excel_analysis.utils.grading_system import (
-    assign_stock_grade,
-    assign_grades_and_update_results,
-)
+from excel_analysis.utils.grading_system import assign_grades_and_update_results
 from excel_analysis.utils.display_results import store_and_display_results
 from excel_analysis.utils.data_validation import validar_datos_hoja
 from excel_analysis.utils.entrenamiento import entrenar_y_predecir
 from excel_analysis.utils.argument_parser import parse_argumentos
 from excel_analysis.utils.logging import configurar_registro, establecer_nivel_debug
-
-
-def calcular_calificaciones_y_umbral(df, y_pred, Y_test, price_column, sheet_name):
-    # Asignar una calificación a la acción
-    stock_grade = assign_stock_grade(df, y_pred, Y_test, price_column)
-    predicted_return = np.sum(y_pred)
-
-    # Obtener el umbral (threshold) óptimo
-    optimal_threshold = obtener_threshold_optimo(Y_test, y_pred)
-    conteo_positivos_reales = np.sum(Y_test)
-    conteo_positivos_predichos = np.sum((y_pred > optimal_threshold).astype(int))
-
-    final_value = conteo_positivos_reales - conteo_positivos_predichos
-
-    return SheetResult(
-        sheet_name,
-        final_value,
-        stock_grade,
-        optimal_threshold,
-        predicted_return,
-        None,
-        None,
-    )
+from excel_analysis.utils.postprocesamiento import calcular_calificaciones_y_umbral
 
 
 def process_stock_data(df, sheet_name, results_list, columns):
