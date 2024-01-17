@@ -100,4 +100,4 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        logging.error(f"Sucedió un error: {str(e)}")
+        logging.error(f"Sucedió un error: {str(e)}", exc_info=True)
