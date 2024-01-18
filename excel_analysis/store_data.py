@@ -1,3 +1,4 @@
+import os
 import json
 import pandas as pd
 from excel_analysis.constants import RESULTS_JSON_FILE_NAME, RESULTS_EXCEL_FILE_NAME
@@ -16,7 +17,9 @@ def store_results_to_json(results, filename=RESULTS_JSON_FILE_NAME):
         json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 
 
-def store_results_to_excel(results, filename=RESULTS_EXCEL_FILE_NAME):
+def store_results_to_excel(
+    results, filename=RESULTS_EXCEL_FILE_NAME, sheet_name="Sheet1"
+):
     """
     Guarda los resultados en un archivo Excel.
 
@@ -25,4 +28,10 @@ def store_results_to_excel(results, filename=RESULTS_EXCEL_FILE_NAME):
     - filename (str): Nombre del archivo donde guardar los resultados.
     """
     df = pd.DataFrame([result._asdict() for result in results])
-    df.to_excel(filename, index=False)
+
+    file_exists = os.path.isfile(filename)
+
+    with pd.ExcelWriter(
+        filename, mode="a" if file_exists else "w", engine="openpyxl"
+    ) as writer:
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
