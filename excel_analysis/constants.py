@@ -1,10 +1,9 @@
 from collections import namedtuple
 
-RESULTS_JSON_FILE_NAME = "resultados.json"
-RESULTS_EXCEL_FILE_NAME = "resultados.xlsx"
+RESULTS_BASE_FILE_NAME = "resultados"  # Nombre base para los archivos de resultados
+
 INDEX_COLUMN = "FECHA"
 TRAIN_TEST_SPLIT_RATIO = 0.8
-
 EXCEL_CONFIGURATIONS = {
     "data_diaria": {
         "file_name": "MEXBOL.xlsx",

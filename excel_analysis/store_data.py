@@ -1,10 +1,9 @@
 import os
 import json
 import pandas as pd
-from excel_analysis.constants import RESULTS_JSON_FILE_NAME, RESULTS_EXCEL_FILE_NAME
 
 
-def store_results_to_json(results, filename=RESULTS_JSON_FILE_NAME, key="Default"):
+def store_results_to_json(results, filename, key="Default"):
     """
     Guarda los resultados en un archivo JSON.
 
@@ -31,9 +30,7 @@ def store_results_to_json(results, filename=RESULTS_JSON_FILE_NAME, key="Default
     print(f"Resultados guardados en el archivo JSON {filename} bajo la clave '{key}'.")
 
 
-def store_results_to_excel(
-    results, filename=RESULTS_EXCEL_FILE_NAME, sheet_name="Sheet1"
-):
+def store_results_to_excel(results, filename, sheet_name="Sheet1"):
     """
     Guarda los resultados en un archivo Excel.
 
