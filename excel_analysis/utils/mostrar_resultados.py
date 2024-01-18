@@ -75,10 +75,10 @@ def almacenar_y_mostrar_resultados(results, valid_sheets, output_file_prefix):
     # Ordenando los resultados
     resultados_ordenados = sorted(results, key=lambda x: x.final_value, reverse=True)
 
-    json_filename = f"resultados_{output_file_prefix}.json"
-
     # Guardar los resultados en un archivo JSON
-    store_results_to_json(resultados_ordenados, filename=json_filename)
+    store_results_to_json(
+        resultados_ordenados, filename=RESULTS_JSON_FILE_NAME, key=output_file_prefix
+    )
     store_results_to_excel(
         resultados_ordenados,
         filename=RESULTS_EXCEL_FILE_NAME,
