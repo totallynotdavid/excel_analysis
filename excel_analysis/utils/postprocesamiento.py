@@ -6,7 +6,7 @@ from excel_analysis.utils.sistema_de_calificaciones import (
     assign_stock_grade,
 )
 from excel_analysis.models.neural_networks import obtener_threshold_optimo
-from excel_analysis.constants import SheetResult, pesos
+from excel_analysis.constants import SheetResult, WEIGHTS
 
 
 def calcular_calificaciones_y_umbral(df, y_pred, Y_test, price_column, sheet_name):
@@ -44,7 +44,7 @@ def procesar_libro(nombre_archivo):
     calificaciones_empresas = {}
 
     # Recorremos cada hoja y compilamos las calificaciones
-    for nombre_hoja in pesos.keys():
+    for nombre_hoja in WEIGHTS.keys():
         hoja = libro[nombre_hoja]
         for fila in hoja.iter_rows(min_row=2, values_only=True):
             empresa = fila[0]
@@ -56,10 +56,10 @@ def procesar_libro(nombre_archivo):
     # Calcular la calificación promedio usando los pesos
     for empresa, calificaciones in calificaciones_empresas.items():
         total_calificacion_ponderada = sum(
-            calificaciones[nombre_hoja] * pesos[nombre_hoja]
+            calificaciones[nombre_hoja] * WEIGHTS[nombre_hoja]
             for nombre_hoja in calificaciones
         )
-        total_peso = sum(pesos[nombre_hoja] for nombre_hoja in calificaciones)
+        total_peso = sum(WEIGHTS[nombre_hoja] for nombre_hoja in calificaciones)
         calificaciones_empresas[empresa]["Promedio"] = (
             total_calificacion_ponderada / total_peso
         )
@@ -73,11 +73,11 @@ def guardar_resultados(nombre_archivo, calificaciones_empresas):
         lista_calificaciones = []
         for empresa, calificaciones in calificaciones_empresas.items():
             fila = [empresa] + [
-                calificaciones.get(nombre_hoja, "N/A") for nombre_hoja in pesos.keys()
+                calificaciones.get(nombre_hoja, "N/A") for nombre_hoja in WEIGHTS.keys()
             ]
             fila.append(calificaciones["Promedio"])
             lista_calificaciones.append(fila)
 
-        columnas = ["Empresa"] + list(pesos.keys()) + ["Promedio"]
+        columnas = ["Empresa"] + list(WEIGHTS.keys()) + ["Promedio"]
         df_resultados = pd.DataFrame(lista_calificaciones, columns=columnas)
         df_resultados.to_excel(escritor, sheet_name="Resultados", index=False)
