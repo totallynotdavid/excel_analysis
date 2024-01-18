@@ -13,6 +13,7 @@ from excel_analysis.constants import (
     EXCEL_CONFIGURATIONS,
     INDEX_COLUMN,
     TRAIN_TEST_SPLIT_RATIO,
+    RESULTS_BASE_FILE_NAME,
 )
 from excel_analysis.utils.argument_parser import parse_argumentos
 from excel_analysis.utils.cargadores_de_datos import validar_y_cargar_hojas
@@ -23,7 +24,11 @@ from excel_analysis.utils.sistema_de_calificaciones import (
     asignar_calificaciones_y_actualizar_resultados,
 )
 from excel_analysis.utils.registro import configurar_registro, establecer_nivel_debug
-from excel_analysis.utils.postprocesamiento import calcular_calificaciones_y_umbral
+from excel_analysis.utils.postprocesamiento import (
+    calcular_calificaciones_y_umbral,
+    guardar_resultados,
+    procesar_libro,
+)
 
 
 def procesar_datos_stock(df, sheet_name, results_list, columns):
@@ -98,6 +103,10 @@ def main():
 
         asignar_calificaciones_y_actualizar_resultados(results)
         almacenar_y_mostrar_resultados(results, valid_sheets, output_file_prefix)
+
+    resultado = f"{RESULTS_BASE_FILE_NAME}.xlsx"
+    calificaciones_empresas = procesar_libro(resultado)
+    guardar_resultados(resultado, calificaciones_empresas)
 
 
 if __name__ == "__main__":
