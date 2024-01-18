@@ -1,12 +1,12 @@
 from collections import namedtuple
 
-RESULTS_JSON_FILE_NAME = "stock_results.json"
-RESULTS_EXCEL_FILE_NAME = "stock_results.xlsx"
+RESULTS_JSON_FILE_NAME = "resultados.json"
+RESULTS_EXCEL_FILE_NAME = "resultados.xlsx"
 INDEX_COLUMN = "FECHA"
 TRAIN_TEST_SPLIT_RATIO = 0.8
 
 EXCEL_CONFIGURATIONS = {
-    "daily_data": {
+    "data_diaria": {
         "file_name": "MEXBOL.xlsx",
         "columns": {
             "price": "PX_LAST",
@@ -43,7 +43,7 @@ EXCEL_CONFIGURATIONS = {
             "detail": "DETALLE",
         },
     },
-    "monthly_data": {
+    "data_mensual": {
         "file_name": "IFMEXICO.xlsx",
         "columns": {
             "price": "PX_LAST",
@@ -65,7 +65,7 @@ EXCEL_CONFIGURATIONS = {
             "detail": "DETALLE",
         },
     },
-    "monthly_data_macro": {
+    "data_mensual_macro": {
         "file_name": "IEMEXICO.xlsx",
         "columns": {
             "price": "PX_LAST",
