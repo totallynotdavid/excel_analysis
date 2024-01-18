@@ -4,6 +4,13 @@ RESULTS_BASE_FILE_NAME = "resultados"  # Nombre base para los archivos de result
 
 INDEX_COLUMN = "FECHA"
 TRAIN_TEST_SPLIT_RATIO = 0.8
+
+weights = {
+    "data_diaria": 0.3,
+    "data_mensual": 0.5,
+    "data_mensual_macro": 0.2,
+}
+
 EXCEL_CONFIGURATIONS = {
     "data_diaria": {
         "file_name": "MEXBOL.xlsx",
